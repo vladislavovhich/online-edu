@@ -1,0 +1,23 @@
+model User {
+    id    Int    @id @default(autoincrement())
+    name String
+    surname String
+    token String @default("")
+
+    email String 
+    password String
+
+    role Role
+
+    mentorCourses Course[] @relation(name: "course_mentor")
+    userCourses StudentCourse[] @relation(name: "student_course")
+
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+}
+
+enum Role {
+    ADMIN
+    STUDENT
+    MENTOR
+}

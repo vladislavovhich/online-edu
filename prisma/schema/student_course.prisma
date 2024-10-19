@@ -1,0 +1,9 @@
+model StudentCourse {
+    courseId Int
+    course Course @relation(fields: [courseId], references: [id], name: "student_course")
+
+    studentId Int
+    student User @relation(fields: [studentId], references: [id], name: "student_course")
+
+    @@id([courseId, studentId])
+}

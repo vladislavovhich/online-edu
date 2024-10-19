@@ -1,0 +1,14 @@
+model Course {
+    id    Int    @id @default(autoincrement())
+
+    name       String
+    description String
+
+    mentor User @relation(name: "course_mentor", fields: [mentorId], references: [id])
+    mentorId Int
+    
+    students StudentCourse[] @relation(name: "student_course")
+
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+}
