@@ -4,7 +4,7 @@ import { ContentType, HttpStatus, HttpStatusMessages} from "../types/response.ty
 export class Response {
     private cookies: Cookie[] = []
 
-    setCookie(name: string, value: string, options: Record<string, string>) {
+    setCookie(name: string, value: string, options: Record<string, any>) {
         this.cookies.push(new Cookie(name, value, options))
 
         return this
@@ -12,7 +12,7 @@ export class Response {
 
     removeCookie(name: string) {
         this.cookies = this.cookies.filter(cookie => cookie.name != name)
-        this.cookies.push(new Cookie(name, '', {"Max-Age": "0"}))
+        this.cookies.push(new Cookie(name, '', {"Max-Age": "0", "path": "/"}))
 
         return this
     }

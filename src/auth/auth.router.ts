@@ -9,7 +9,7 @@ import { ValidateDtoMiddleware } from "../common/middleware/validate-dto.middlew
 import { SignInDto } from "./dto/sign-in.dto";
 import { CheckAuthorizedMiddleware } from "./middleware/check-authorized.middleware";
 
-export const init = async () => {
+export const createAuthRouter = async () => {
     const auth = await AuthController.GetInstance()
     const router = new Router()
 
@@ -23,6 +23,10 @@ export const init = async () => {
 
     router.post("/auth/sign-out", auth.signOut.bind(auth), [
         CheckAuthorizedMiddleware('accessToken', 'jwt')
+    ])
+
+    router.get("/auth/me", auth.me.bind(auth), [
+        CheckAuthorizedMiddleware("accessToken", "jwt")
     ])
 
     return router

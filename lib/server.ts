@@ -35,12 +35,12 @@ export class SocketServer {
                     if (exception instanceof HttpError) {
                         responseText = response.text(exception.statusCode, exception.message)
                     }
-                    if (exception instanceof Error) {     
+                    else if (exception instanceof Error) {     
                         responseText = response.text(HttpStatus.BAD_REQUEST, exception.message);
                     } else {
                         responseText = response.text(HttpStatus.INTERNAL_SERVER_ERROR, "Some error occured...");
                     }
-
+                    
                     socket.write(responseText)
                     socket.end()
                 } 

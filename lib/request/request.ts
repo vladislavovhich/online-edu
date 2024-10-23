@@ -1,8 +1,10 @@
+import { JwtPayload } from "../../src/jwt/jwt.types"
 import { BadRequestError } from "../errors/bad-request.error"
 
 export class Request {
     public params: Record<string, string> = {}
-
+    public payload?: JwtPayload
+    
     private constructor(
         public readonly url: string, 
         public readonly method: string,
@@ -12,6 +14,7 @@ export class Request {
     ) {}
 
     public static parse(rawRequest: string) {
+        console.log(rawRequest)
         const lines = rawRequest.split("\r\n")
         const {url, method} = Request.parseUrl(lines[0])
         const headerEndIndex = lines.indexOf('')
