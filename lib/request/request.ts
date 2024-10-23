@@ -56,11 +56,15 @@ export class Request {
 
             for (let [header, value] of headers) {
                 if (header == "Cookie") {
-                    const equalIndex = value.indexOf("=")
-                    const cookieName = value.slice(0, equalIndex)
-                    const cookieVal = value.slice(equalIndex + 1)
+                    const rawCookies = value.split(";")
 
-                    cookies[cookieName] = cookieVal
+                    for (let rawCookie of rawCookies) {  
+                        const equalIndex = rawCookie.indexOf("=")
+                        const cookieName = rawCookie.slice(0, equalIndex).trim()
+                        const cookieVal = rawCookie.slice(equalIndex + 1).trim()
+
+                        cookies[cookieName] = cookieVal
+                    }
                 }
             }
 
@@ -99,7 +103,7 @@ export class Request {
                 params[paramName] = requestUrlSplit[i]
             }
         }
-
+        
         return params
     }
 

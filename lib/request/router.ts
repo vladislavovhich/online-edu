@@ -19,7 +19,7 @@ export class Router {
         return new Router(routes)
     }
 
-    add(method: HttpMethod, url: string, action: RouteAction, middleware: Middleware[]) {
+    add(method: HttpMethod, url: string, action: RouteAction, middleware: Middleware[] = []) {
         if (this.routes.some(route => route.url == url && route.method == method)) {
             throw new Error("You've already defined such route")
         }
@@ -27,23 +27,23 @@ export class Router {
         this.routes.push(new Route(method, url, action, middleware))
     }
 
-    get(url: string,  action: RouteAction, middleware: Middleware[]) {
+    get(url: string,  action: RouteAction, middleware: Middleware[] = []) {
         this.add(HttpMethod.GET, url, action, middleware)
     }
 
-    post(url: string,  action: RouteAction, middleware: Middleware[]) {
+    post(url: string,  action: RouteAction, middleware: Middleware[] = []) {
         this.add(HttpMethod.POST, url, action, middleware)
     }
 
-    put(url: string,  action: RouteAction, middleware: Middleware[]) {
+    put(url: string,  action: RouteAction, middleware: Middleware[] = []) {
         this.add(HttpMethod.PUT, url, action, middleware)
     }
 
-    patch(url: string,  action: RouteAction, middleware: Middleware[]) {
+    patch(url: string,  action: RouteAction, middleware: Middleware[] = []) {
         this.add(HttpMethod.PATCH, url, action, middleware)
     }
 
-    delete(url: string,  action: RouteAction, middleware: Middleware[]) {
+    delete(url: string,  action: RouteAction, middleware: Middleware[] = []) {
         this.add(HttpMethod.DELETE, url, action, middleware)
     }
 

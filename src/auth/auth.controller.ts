@@ -4,12 +4,14 @@ import { AuthService } from "./auth.service";
 import { Request } from "../../lib/request/request";
 import { Response } from "../../lib/response/response";
 import { HttpStatus } from "../../lib/types/response.types";
+import { SignUpDto } from "./dto/sign-up.dto";
+import { SignInDto } from "./dto/sign-in.dto";
 
 export class AuthController {
     private static instance: AuthController
 
     private constructor(
-        private authService: AuthService
+        public readonly authService: AuthService
     ) {}
 
     public static async GetInstance() {
@@ -23,6 +25,29 @@ export class AuthController {
     }
 
     public async signUp(request: Request) {
-        return new Response().text(HttpStatus.OK, JSON.stringify(request.body))
+        const signUpDto = Object.assign(new SignUpDto(), request.body)
+        const result = await this.authService.signUp(signUpDto)
+
+        return new Response()
+            .setCookie("jwt", result.tokens.accessToken, { })
+            .setCookie("jwt-refresh", result.tokens.refreshToken, { })
+            .json(HttpStatus.OK, JSON.stringify(result.user))
+    }
+
+    public async signIn(request: Request) {
+        const signInDto = Object.assign(new SignInDto(), request.body)
+        const result = await this.authService.signIn(signInDto)
+
+        return new Response()
+            .setCookie("jwt", result.tokens.accessToken, { })
+            .setCookie("jwt-refresh", result.tokens.refreshToken, { })
+            .json(HttpStatus.OK, JSON.stringify(result.user))
+    }
+
+    public async signOut(request: Request) {
+        return new Response()
+            .removeCookie("jwt")
+            .removeCookie("jwt-refresh")
+            .text(HttpStatus.OK, "Successfuly signed-out")
     }
 }

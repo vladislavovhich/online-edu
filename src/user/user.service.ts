@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
-import { CreateUserDto } from "./dto/create-user.dto";
 import { BadRequestError } from "../../lib/errors/bad-request.error";
+import { SignUpDto } from "../auth/dto/sign-up.dto";
 
 export class UserService {
     private static instance: UserService
@@ -24,7 +24,7 @@ export class UserService {
         return this.prisma.user.findFirst({ where: {email} })
     }
 
-    public async create(createUserDto: CreateUserDto) {
+    public async create(createUserDto: SignUpDto) {
         const userFound = await this.findByEmail(createUserDto.email)
 
         if (userFound) {

@@ -19,4 +19,6 @@ export class SignUpDto {
 
     @IsEnum(Roles)
     role: Roles
+
+    token?: string
 }

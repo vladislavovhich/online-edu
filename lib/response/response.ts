@@ -12,7 +12,7 @@ export class Response {
 
     removeCookie(name: string) {
         this.cookies = this.cookies.filter(cookie => cookie.name != name)
-        this.cookies.push(new Cookie(name, '', {"Max-Age": "0", "Path": "/"}))
+        this.cookies.push(new Cookie(name, '', {"Max-Age": "0"}))
 
         return this
     }

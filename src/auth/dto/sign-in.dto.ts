@@ -1,4 +1,10 @@
-import { PickClass } from "../../common/helper/pick-type.helper";
-import { SignUpDto } from "./sign-up.dto";
+import { IsEmail, MaxLength, MinLength } from "class-validator";
 
-export class SignInDto extends PickClass(SignUpDto, ['email', 'password']) {}
+export class SignInDto {
+    @IsEmail()
+    email: string
+    
+    @MinLength(5)
+    @MaxLength(15)
+    password: string
+}
