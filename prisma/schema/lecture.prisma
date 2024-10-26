@@ -1,0 +1,16 @@
+model Lecture {
+    id    Int    @id @default(autoincrement())
+
+    name       String
+    description String
+    subject String
+    date DateTime
+    isOver Boolean @default(false)
+    fileUrl String @default("")
+
+    mentor User @relation(name: "lecture_mentor", fields: [mentorId], references: [id])
+    mentorId Int
+
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+}

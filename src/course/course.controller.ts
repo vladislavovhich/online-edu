@@ -5,6 +5,7 @@ import { Response } from "../../lib/response/response"
 import { HttpStatus } from "../../lib/types/response.types"
 import { UserService } from "../user/user.service"
 import { CourseService } from "./course.service"
+import { CourseSubDto } from "./dto/course-sub.dto"
 import { CreateCourseDto } from "./dto/create-course.dto"
 import { UpdateCourseDto } from "./dto/update-course.dto"
 
@@ -25,6 +26,58 @@ export class CourseController {
         }
 
         return CourseController.instance
+    }
+
+    public async getCourses(request: Request) {
+        const userId = parseInt(request.params.userId)
+        const courses = await this.courseService.getCourses(userId)
+
+        return new Response()
+            .json(HttpStatus.OK, JSON.stringify({courses}))
+    }
+
+    public async subscribe(request: Request) {
+        if (!request.payload) {
+            throw new BadRequestError("User isn't authorized, so you can't access this resource...")
+        }
+
+        const user = await this.userService.findByEmail(request.payload.email)
+
+        if (!user) {
+            throw new BadRequestError("User isn't specified...")
+        }
+
+        const courseSubDto = new CourseSubDto()
+
+        courseSubDto.userId = user.id
+        courseSubDto.courseId = parseInt(request.params.id)
+
+        await this.courseService.subscribe(courseSubDto)
+
+        return new Response()
+            .text(HttpStatus.OK, "You've successfully subscribed to the course...")
+    }
+
+    public async unsubscribe(request: Request) {
+        if (!request.payload) {
+            throw new BadRequestError("User isn't authorized, so you can't access this resource...")
+        }
+
+        const user = await this.userService.findByEmail(request.payload.email)
+
+        if (!user) {
+            throw new BadRequestError("User isn't specified...")
+        }
+
+        const courseSubDto = new CourseSubDto()
+
+        courseSubDto.userId = user.id
+        courseSubDto.courseId = parseInt(request.params.id)
+
+        await this.courseService.unsubscribe(courseSubDto)
+
+        return new Response()
+            .text(HttpStatus.OK, "You've successfully unsubscribed to the course...")
     }
 
     public async create(request: Request) {

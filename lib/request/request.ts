@@ -10,11 +10,11 @@ export class Request {
         public readonly method: string,
         public readonly headers: string[][],
         public readonly body: Record<string, string> = {},
-        public readonly cookie: Record<string, string> = {}
+        public readonly cookie: Record<string, string> = {},
+        public readonly query: Record<string, string> = {}
     ) {}
 
     public static parse(rawRequest: string) {
-        console.log(rawRequest)
         const lines = rawRequest.split("\r\n")
         const {url, method} = Request.parseUrl(lines[0])
         const headerEndIndex = lines.indexOf('')
@@ -23,10 +23,32 @@ export class Request {
         const headers = Request.processHeaders(headerLines)
         const cookies = Request.parseCookies(headers)
         const body = Request.parseBody(lines, headers)
-        
-        const request = new Request(url, method, headers, body, cookies)
+        const queryParams = Request.parseQueryParams(url)
+
+        const request = new Request(url, method, headers, body, cookies, queryParams)
 
         return request
+    }
+
+    public static parseQueryParams(url: string) {
+        const queryParamsIndex = url.indexOf("?")
+
+        if (queryParamsIndex == -1) {
+            return {}
+        }
+
+        const queryParamsLine = url.slice(queryParamsIndex + 1)
+        const queryParamsRaw = queryParamsLine.split("&")
+
+        const queryParams: Record<string, string> = {}
+
+        for (let queryParamRaw of queryParamsRaw) {
+            const [name, value] = queryParamRaw.split("=")
+
+            queryParams[name] = value
+        }
+
+        return queryParams
     }
 
     public static parseBody(requestLines: string[], headers: string[][]) {
@@ -98,6 +120,8 @@ export class Request {
         const params: Record<string, string> = {}
         const requestUrlSplit = requestUrl.split("/").filter((val) => val.trim() != "")
         const urlSplit = url.split("/").filter((val) => val.trim() != "")
+        
+        console.log(requestUrl, url)
         
         for (let i = 0; i < requestUrlSplit.length; i++) {
             if (requestUrlSplit[i] != urlSplit[i] && urlSplit[i].includes(":")) {

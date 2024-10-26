@@ -12,6 +12,10 @@ model User {
 
     mentorCourses Course[] @relation(name: "course_mentor")
     userCourses StudentCourse[] @relation(name: "student_course")
+    createdGroups Group[] @relation(name: "group_creator")
+    groupMember GroupMember[] @relation(name: "group_member")
+    lectures Lecture[] @relation(name: "lecture_mentor")
+    groupSendMessages GroupMessage[] @relation(name: "group_message_sender")
 
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt

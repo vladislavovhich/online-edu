@@ -36,7 +36,7 @@ export class SocketServer {
                         responseText = response.text(exception.statusCode, exception.message)
                     }
                     else if (exception instanceof Error) {     
-                        responseText = response.text(HttpStatus.BAD_REQUEST, exception.message);
+                        responseText = response.text(HttpStatus.BAD_REQUEST, `${exception.message}, ${exception.stack}`);
                     } else {
                         responseText = response.text(HttpStatus.INTERNAL_SERVER_ERROR, "Some error occured...");
                     }

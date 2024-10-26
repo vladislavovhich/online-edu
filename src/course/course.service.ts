@@ -4,6 +4,8 @@ import { UserService } from "../user/user.service"
 import { CreateCourseDto } from "./dto/create-course.dto"
 import { UpdateCourseDto } from "./dto/update-course.dto"
 import { NotFoundError } from "../../lib/errors/not-found.error"
+import { CourseSubDto } from "./dto/course-sub.dto"
+import { BadRequestError } from "../../lib/errors/bad-request.error"
 
 export class CourseService {
     private static instance: CourseService
@@ -24,7 +26,80 @@ export class CourseService {
         return CourseService.instance
     }
 
-    public findOne(id: number) {
+    public async getCourses(userId: number) {
+        const user = await this.userService.findOne(userId)
+
+        if (!user) {
+            throw new NotFoundError("User not found...")
+        }
+
+        const studentsCourses = await this.prisma.studentCourse.findMany({
+            where: {
+                studentId: userId
+            },
+            include: {
+                course: {
+                    include: {
+                        mentor: true
+                    }
+                }
+            }
+        })
+        const courses = studentsCourses.map(studentCourse => studentCourse.course)
+
+        return courses
+    }
+
+    public async subscribe(courseSubDto: CourseSubDto) {
+        const isSubbed = await this.isSubbed(courseSubDto)
+
+        if (isSubbed) {
+            throw new BadRequestError("You're already subbed to this course...")
+        }
+
+        const course = await this.findOne(courseSubDto.courseId)
+
+        if (!course) {
+            throw new NotFoundError(`Course with id ${courseSubDto.courseId} not found...`)
+        }
+
+        await this.prisma.studentCourse.create({
+            data: {
+                course: {connect: {id: courseSubDto.courseId}},
+                student: {connect: {id: courseSubDto.userId}}
+            }
+        })
+    }
+
+    public async unsubscribe(courseSubDto: CourseSubDto) {
+        const isSubbed = await this.isSubbed(courseSubDto)
+
+        if (!isSubbed) {
+            throw new BadRequestError("You're not subbed to this course...")
+        }
+
+        const course = await this.findOne(courseSubDto.courseId)
+
+        if (!course) {
+            throw new NotFoundError(`Course with id ${courseSubDto.courseId} not found...`)
+        }
+
+        await this.prisma.studentCourse.deleteMany({
+            where: {
+                courseId: courseSubDto.courseId,
+                studentId: courseSubDto.userId
+            }
+        })
+    }
+
+    public isSubbed(courseSubDto: CourseSubDto) {
+        return this.prisma.studentCourse.findFirst({where: {
+            studentId: courseSubDto.userId, 
+            courseId: courseSubDto.courseId
+        }})
+    }
+
+    public async findOne(id: number) {
         return this.prisma.course.findFirst({ where: {id}})
     }
 

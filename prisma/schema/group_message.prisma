@@ -1,0 +1,14 @@
+model GroupMessage {
+    id    Int    @id @default(autoincrement())
+
+    text String
+
+    sender User @relation(name: "group_message_sender", fields: [senderId], references: [id])
+    senderId Int
+
+    group Group @relation(name: "group_message", fields: [groupId], references: [id])
+    groupId Int
+
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+}

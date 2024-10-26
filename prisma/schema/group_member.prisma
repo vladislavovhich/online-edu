@@ -1,0 +1,9 @@
+model GroupMember {
+    groupId Int
+    group Group @relation(fields: [groupId], references: [id], name: "group_member")
+
+    userId Int
+    user User @relation(fields: [userId], references: [id], name: "group_member")
+
+    @@id([groupId, userId])
+}
