@@ -64,16 +64,14 @@ export class Router {
             }
         }
 
+        console.log(`${request.method} ${request.url} -> ${route.method} ${route.url}`)
+
         const response = await route.action(request)
 
         return response
     }
 
     checkUrl(requestUrl: string, url: string) {
-        if (!url.includes(":")) {
-            return requestUrl.includes(url)
-        }
-
         const requestUrlSplit = requestUrl
             .split("/")
             .filter((val) => val.trim() != "")
@@ -82,12 +80,29 @@ export class Router {
             .split("/")
             .filter((val) => val.trim() != "")
 
+        if (!url.includes(":")) {
+            for (let i = 0; i < urlSplit.length; i++) {
+                if (!requestUrlSplit[i].includes(urlSplit[i])) {
+                    return false
+                }
+            }
+
+            return true
+        }
+
         if (urlSplit.length != requestUrlSplit.length) {
             return false
         }
 
-        const params = requestUrlSplit.map((item, index) => [item, urlSplit[index]])
+        for (let i = 0; i < urlSplit.length; i++) {
+            if (
+                (urlSplit[i].includes(":") && Number.isNaN(requestUrlSplit[i])) ||
+                (!urlSplit[i].includes(":") && !requestUrlSplit[i].includes(urlSplit[i]))
+            ) {
+                return false
+            }
+        }
 
-        return params.every(([item1, item2]) => item1 == item2 || item1 != item2 && item2.includes(":"))
+        return true
     }
 }

@@ -6,6 +6,10 @@ import { UpdateCourseDto } from "./dto/update-course.dto"
 import { NotFoundError } from "../../lib/errors/not-found.error"
 import { CourseSubDto } from "./dto/course-sub.dto"
 import { BadRequestError } from "../../lib/errors/bad-request.error"
+import { PaginationDto } from "../common/dto/pagination.dto"
+import { GetCourseDto } from "./dto/get-course.dto"
+import { GetCoursesDto } from "./dto/get-courses.dto"
+import { off } from "process"
 
 export class CourseService {
     private static instance: CourseService
@@ -26,28 +30,31 @@ export class CourseService {
         return CourseService.instance
     }
 
-    public async getCourses(userId: number) {
-        const user = await this.userService.findOne(userId)
+    public async getCourses(userId: number, paginationDto: PaginationDto) {
+        await this.userService.findOneSave(userId)
 
-        if (!user) {
-            throw new NotFoundError("User not found...")
-        }
-
+        const {pageSize, offset} = paginationDto
         const studentsCourses = await this.prisma.studentCourse.findMany({
+            take: pageSize,
+            skip: offset,
             where: {
                 studentId: userId
             },
             include: {
                 course: {
                     include: {
-                        mentor: true
+                        mentor: true,
+                        lectures: true,
+                        students: true
                     }
                 }
             }
         })
-        const courses = studentsCourses.map(studentCourse => studentCourse.course)
 
-        return courses
+        const count = await this.prisma.studentCourse.count({where: { studentId: userId}})
+        const courseDtos = studentsCourses.map(studentsCourses => new GetCourseDto(studentsCourses.course))
+
+        return new GetCoursesDto(courseDtos, count, paginationDto)
     }
 
     public async subscribe(courseSubDto: CourseSubDto) {
@@ -57,11 +64,7 @@ export class CourseService {
             throw new BadRequestError("You're already subbed to this course...")
         }
 
-        const course = await this.findOne(courseSubDto.courseId)
-
-        if (!course) {
-            throw new NotFoundError(`Course with id ${courseSubDto.courseId} not found...`)
-        }
+        await this.findOneSave(courseSubDto.courseId)
 
         await this.prisma.studentCourse.create({
             data: {
@@ -78,11 +81,7 @@ export class CourseService {
             throw new BadRequestError("You're not subbed to this course...")
         }
 
-        const course = await this.findOne(courseSubDto.courseId)
-
-        if (!course) {
-            throw new NotFoundError(`Course with id ${courseSubDto.courseId} not found...`)
-        }
+        await this.findOneSave(courseSubDto.courseId)
 
         await this.prisma.studentCourse.deleteMany({
             where: {
@@ -100,46 +99,69 @@ export class CourseService {
     }
 
     public async findOne(id: number) {
-        return this.prisma.course.findFirst({ where: {id}})
-    }
-
-    public findAll() {
-        return this.prisma.course.findMany({
+        return this.prisma.course.findFirst({ 
+            where: {id}, 
             include: {
-                mentor: true
+                mentor: true,
+                lectures: true,
+                students: true
             }
         })
     }
 
-    public create(createCourseDto: CreateCourseDto) {
-        return this.prisma.course.create({
+    public async findOneSave(id: number) {
+        const course = await this.findOne(id)
+
+        if (!course) {
+            throw new NotFoundError("Course not found...")
+        }
+
+        return course
+    }
+
+    public async findAll(paginationDto: PaginationDto) {
+        const {pageSize, offset} = paginationDto
+        const courses = await this.prisma.course.findMany({
+            take: pageSize,
+            skip: offset,
+            include: {
+                mentor: true,
+                lectures: true,
+                students: true
+            }
+        })
+
+        const count = await this.prisma.course.count()
+        const courseDtos = courses.map(course => new GetCourseDto(course))
+
+        return new GetCoursesDto(courseDtos, count, paginationDto)
+    }
+
+    public async create(createCourseDto: CreateCourseDto) {
+        const course = await this.prisma.course.create({
             data: {
                 name: createCourseDto.name,
                 description: createCourseDto.description,
                 mentor: { connect: {id: createCourseDto.mentorId }}
             }
         })
+
+        return this.findOneSave(course.id)
     }
 
     public async update(id: number, updateCourseDto: UpdateCourseDto) {
-        const course = await this.findOne(id)
+        await this.findOneSave(id)
 
-        if (!course) {
-            throw new NotFoundError(`Course with id ${id} not found...`)
-        }
-
-        return this.prisma.course.update({
+        await this.prisma.course.update({
             where: {id},
             data: updateCourseDto
         })
+
+        return this.findOneSave(id)
     }
 
     public async delete(id: number) {
-        const course = await this.findOne(id)
-
-        if (!course) {
-            throw new NotFoundError(`Course with id ${id} not found...`)
-        }
+        await this.findOneSave(id)
 
         await this.prisma.course.delete({where: {id}})
     }

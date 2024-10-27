@@ -11,6 +11,9 @@ model Lecture {
     mentor User @relation(name: "lecture_mentor", fields: [mentorId], references: [id])
     mentorId Int
 
+    course Course @relation(name: "lecture_course", fields: [courseId], references: [id])
+    courseId Int
+
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
 }

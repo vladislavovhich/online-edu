@@ -3,7 +3,7 @@ import { Request } from "../../../lib/request/request"
 import { BadRequestError } from "../../../lib/errors/bad-request.error"
 import { NotFoundError } from "../../../lib/errors/not-found.error"
 
-export const CheckOwnershipMiddleware = (itemIdName: string, ownerIdName: string, getItem: (id: number) => Promise<any>) => {
+export const CheckOwnershipMiddleware = <T>(itemIdName: string, ownerIdName: keyof T, getItem: (id: number) => Promise<T | null>) => {
     return async (request: Request): Promise<boolean> => {
         const userService = await UserService.GetInstance()
         const payload = request.payload
@@ -22,6 +22,6 @@ export const CheckOwnershipMiddleware = (itemIdName: string, ownerIdName: string
     
         const item = await getItem(itemId)
 
-        return item && user.id == item[ownerIdName]
+        return !!item && user.id == item[ownerIdName]
     }
 }

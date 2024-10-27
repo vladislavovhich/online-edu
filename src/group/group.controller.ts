@@ -1,12 +1,16 @@
+import { plainToInstance } from "class-transformer";
 import { BadRequestError } from "../../lib/errors/bad-request.error";
 import { Request } from "../../lib/request/request";
 import { Response } from "../../lib/response/response";
 import { HttpStatus } from "../../lib/types/response.types";
+import { extractUser } from "../common/helpers/extract-user.helper";
 import { UserService } from "../user/user.service";
 import { CreateGroupDto } from "./dto/create-group.dto";
 import { MemberOpDto } from "./dto/member-op.dto";
 import { UpdateGroupDto } from "./dto/update-group.dto";
 import { GroupService } from "./group.service";
+import { GetGroupDto } from "./dto/get-group.dto";
+import { PaginationDto } from "../common/dto/pagination.dto";
 
 export class GroupController {
     private static instance: GroupController
@@ -28,17 +32,8 @@ export class GroupController {
     }
 
     public async addMember(request: Request) {
-        const memberOpDto = Object.assign(new MemberOpDto(), request.params)
-
-        if (!request.payload) {
-            throw new BadRequestError("User isn't authorized, so you can't access this resource...")
-        }
-
-        const user = await this.userService.findByEmail(request.payload.email)
-
-        if (!user) {
-            throw new BadRequestError("User isn't specified...")
-        }
+        const memberOpDto = plainToInstance(MemberOpDto, request.body)
+        const user = await extractUser(request)
 
         memberOpDto.currentUserId = user.id
 
@@ -49,17 +44,8 @@ export class GroupController {
     }
 
     public async removeMember(request: Request) {
-        const memberOpDto = Object.assign(new MemberOpDto(), request.params)
-
-        if (!request.payload) {
-            throw new BadRequestError("User isn't authorized, so you can't access this resource...")
-        }
-
-        const user = await this.userService.findByEmail(request.payload.email)
-
-        if (!user) {
-            throw new BadRequestError("User isn't specified...")
-        }
+        const memberOpDto = plainToInstance(MemberOpDto, request.params)
+        const user = await extractUser(request)
 
         memberOpDto.currentUserId = user.id
 
@@ -69,55 +55,49 @@ export class GroupController {
             .text(HttpStatus.OK, "User is removed from the group...")
     }
 
+    public async getUserGroups(request: Request) {
+        const userId = parseInt(request.params.id)
+        const paginationDto = plainToInstance(PaginationDto, request.query)
+        const groups = await this.groupService.getUserGroups(userId, paginationDto)
+
+        return new Response()
+            .json(HttpStatus.OK, groups) 
+    }
+
     public async findOne(request: Request) {
         const groupId = parseInt(request.params.id)
-        const group = await this.groupService.findOne(groupId)
-        
+        const group = await this.groupService.findOneSave(groupId)
+        const groupDto = new GetGroupDto(group)
+
         return new Response()
-            .json(HttpStatus.OK, JSON.stringify({group}))
+            .json(HttpStatus.OK, {group: groupDto})
     }
 
     public async create(request: Request) {
-        const createGroupDto = Object.assign(new CreateGroupDto(), request.body)
-
-        if (!request.payload) {
-            throw new BadRequestError("User isn't authorized, so you can't access this resource...")
-        }
-
-        const user = await this.userService.findByEmail(request.payload.email)
-
-        if (!user) {
-            throw new BadRequestError("User isn't specified...")
-        }
+        const createGroupDto = plainToInstance(CreateGroupDto, request.body)
+        const user = await extractUser(request)
 
         createGroupDto.userId = user.id
 
         const group = await this.groupService.create(createGroupDto)
+        const groupDto = new GetGroupDto(group)
 
         return new Response()
-            .json(HttpStatus.OK, JSON.stringify({group}))
+            .json(HttpStatus.OK, {group: groupDto})
     }
 
     public async update(request: Request) {
-        const updateGroupDto = Object.assign(new UpdateGroupDto(), request.body)
-
-        if (!request.payload) {
-            throw new BadRequestError("User isn't authorized, so you can't access this resource...")
-        }
-
-        const user = await this.userService.findByEmail(request.payload.email)
-
-        if (!user) {
-            throw new BadRequestError("User isn't specified...")
-        }
+        const updateGroupDto = plainToInstance(UpdateGroupDto, request.body)
+        const user = await extractUser(request)
 
         updateGroupDto.userId = user.id
 
         const groupId = parseInt(request.params.id)
         const group = await this.groupService.update(groupId, updateGroupDto)
+        const groupDto = new GetGroupDto(group)
 
         return new Response()
-            .json(HttpStatus.OK, JSON.stringify({group}))
+            .json(HttpStatus.OK, {group: groupDto})
     }
 
     public async delete(request: Request) {

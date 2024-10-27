@@ -7,11 +7,16 @@ import { MemberOpDto } from "./dto/member-op.dto"
 import { UpdateGroupDto } from "./dto/update-group.dto"
 import { GroupController } from "./group.controller"
 import { GroupService } from "./group.service"
-import { Request } from "../../lib/request/request"
+import { PaginationDto } from "../common/dto/pagination.dto"
+
 export const createGroupRouter = async () => {
     const group = await GroupController.GetInstance()
     const groupService = await GroupService.GetInstance()
     const router = new Router()
+
+    router.get("/users/:id/groups", group.getUserGroups.bind(group), [
+        ValidateDtoMiddleware(PaginationDto, "query"),
+    ])
 
     router.delete("/groups/:groupId/remove-member/:userId", group.removeMember.bind(group), [
         CheckAuthorizedMiddleware("accessToken", "jwt"),

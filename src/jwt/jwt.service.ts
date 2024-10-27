@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken"
-import { JwtParams, JwtPayload } from "./jwt.types"
+import { JwtParams, JwtPayload, Token } from "./jwt.types"
 
 export class JwtService {
     private static instance: JwtService
@@ -27,7 +27,7 @@ export class JwtService {
         return JwtService.instance
     }
 
-    public verifyToken(token: string, type: "accessToken" | "refreshToken") {
+    public verifyToken(token: string, type: Token) {
         return new Promise((resolve, reject) => {
             jwt.verify(token, this[type].secret, (err, decoded) => {
                 if (err) {
@@ -46,7 +46,7 @@ export class JwtService {
         return { accessToken, refreshToken }
     }
 
-    public createToken(payload: JwtPayload, type: "accessToken" | "refreshToken") {
+    public createToken(payload: JwtPayload, type: Token) {
         const token = jwt.sign(payload, this[type].secret, { expiresIn: this[type].expire})
 
         return token

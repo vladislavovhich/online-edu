@@ -11,11 +11,21 @@ export class SocketServer {
         public readonly router: Router
     ) {}
 
+    public printRoutes() {
+        for (let route of this.router.routes) {
+            let zerosAmount = 6 - route.method.length + 2
+
+            console.log(`[${route.method}]${" ".repeat(zerosAmount)} ${route.url}`)
+        }
+    }
+
     public start(port: number) {
         const options: tls.TlsOptions = {
             key: fs.readFileSync("./lib/certificate/server.key"),
             cert: fs.readFileSync("./lib/certificate/server.cert"),
         }
+
+        this.printRoutes()
 
         const server = tls.createServer(options, (socket) => {
             socket.on("data", async (data) => {

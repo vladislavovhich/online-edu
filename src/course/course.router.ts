@@ -9,6 +9,7 @@ import { CourseController } from "./course.controller"
 import { CourseService } from "./course.service"
 import { CreateCourseDto } from "./dto/create-course.dto"
 import { UpdateCourseDto } from "./dto/update-course.dto"
+import { PaginationDto } from "../common/dto/pagination.dto"
 
 export const createCourseRouter = async () => {
     const course = await CourseController.GetInstance()
@@ -16,7 +17,9 @@ export const createCourseRouter = async () => {
 
     const router = new Router()
 
-    router.get("/users/:userId/courses", course.getCourses.bind(course))
+    router.get("/users/:userId/courses", course.getCourses.bind(course), [
+        ValidateDtoMiddleware(PaginationDto, "query")
+    ])
     
     router.put("/courses/:id/subscribe", course.subscribe.bind(course), [
         CheckAuthorizedMiddleware('accessToken', 'jwt'),
@@ -35,20 +38,22 @@ export const createCourseRouter = async () => {
     router.patch("/courses/:id", course.update.bind(course), [
         CheckAuthorizedMiddleware('accessToken', 'jwt'),
         CheckRoleMiddleware([Roles.MENTOR]),
-        CheckOwnershipMiddleware("id", "mentorId", courseService.findOne),
+        CheckOwnershipMiddleware<Course>("id", "mentorId", courseService.findOne.bind(courseService)),
         ValidateDtoMiddleware(UpdateCourseDto, "body")
     ])
 
     router.delete("/courses/:id", course.delete.bind(course), [
         CheckAuthorizedMiddleware('accessToken', 'jwt'),
         CheckRoleMiddleware([Roles.MENTOR]),
-        CheckOwnershipMiddleware("id", "mentorId", courseService.findOne),
+        CheckOwnershipMiddleware<Course>("id", "mentorId", courseService.findOne.bind(courseService)),
         CheckAuthorizedMiddleware('accessToken', 'jwt')
     ])
 
     router.get("/courses/:id", course.findOne.bind(course))
 
-    router.get("/courses", course.findAll.bind(course))
+    router.get("/courses", course.findAll.bind(course), [
+        ValidateDtoMiddleware(PaginationDto, "query")
+    ])
 
     return router
 }

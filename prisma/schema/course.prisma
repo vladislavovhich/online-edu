@@ -8,7 +8,8 @@ model Course {
     mentorId Int
     
     students StudentCourse[] @relation(name: "student_course")
-
+    lectures Lecture[] @relation(name: "lecture_course")
+    
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
 }

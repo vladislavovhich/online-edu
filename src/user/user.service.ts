@@ -3,6 +3,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { BadRequestError } from "../../lib/errors/bad-request.error";
 import { SignUpDto } from "../auth/dto/sign-up.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
+import { NotFoundError } from "../../lib/errors/not-found.error";
 
 export class UserService {
     private static instance: UserService
@@ -27,6 +28,16 @@ export class UserService {
 
     public findOne(id: number) {
         return this.prisma.user.findFirst({ where: {id} })
+    }
+
+    public async findOneSave(id: number) {
+        const user = await this.findOne(id)
+
+        if (!user) {
+            throw new NotFoundError("User not found...")
+        }
+
+        return user
     }
 
     public async create(createUserDto: SignUpDto) {

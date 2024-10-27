@@ -7,6 +7,10 @@ import { MessageService } from "./message.service"
 import { Request } from "../../lib/request/request"
 import { Response } from "../../lib/response/response"
 import { CreateMessageDto } from "./dto/create-message.dto"
+import { extractUser } from "../common/helpers/extract-user.helper"
+import { plainToInstance } from "class-transformer"
+import { GetMessageDto } from "./dto/get-message.dto"
+import { PaginationDto } from "../common/dto/pagination.dto"
 
 export class MessageController {
     private static instance: MessageController
@@ -27,54 +31,46 @@ export class MessageController {
         return MessageController.instance
     }
 
-    public async findOne(request: Request) {
-        const messageId = parseInt(request.params.id)
-        const message = await this.messageService.findOne(messageId)
+    public async getGroupMessages(request: Request) {
+        const groupId = parseInt(request.params.id)
+        const paginationDto = plainToInstance(PaginationDto, request.query)
+        const messages = await this.messageService.getGroupMessages(groupId, paginationDto)
         
         return new Response()
-            .json(HttpStatus.OK, JSON.stringify({message}))
+            .json(HttpStatus.OK, messages)
+    }
+
+    public async findOne(request: Request) {
+        const messageId = parseInt(request.params.id)
+        const message = await this.messageService.findOneSave(messageId)
+        const messsageDto = new GetMessageDto(message)
+
+        return new Response()
+            .json(HttpStatus.OK, {message: messsageDto})
     }
 
     public async create(request: Request) {
-        const createMessageDto = Object.assign(new CreateMessageDto(), request.body)
-
-        if (!request.payload) {
-            throw new BadRequestError("User isn't authorized, so you can't access this resource...")
-        }
-
-        const user = await this.userService.findByEmail(request.payload.email)
-
-        if (!user) {
-            throw new BadRequestError("User isn't specified...")
-        }
+        const createMessageDto = plainToInstance(CreateMessageDto, request.body)
+        const user = await extractUser(request)
 
         createMessageDto.senderId = user.id
         createMessageDto.groupId = parseInt(request.params.groupId)
 
         const message = await this.messageService.create(createMessageDto)
+        const messsageDto = new GetMessageDto(message)
 
         return new Response()
-            .json(HttpStatus.OK, JSON.stringify({message}))
+            .json(HttpStatus.OK, {message: messsageDto})
     }
 
     public async update(request: Request) {
-        const createMessageDto = Object.assign(new CreateMessageDto(), request.body)
-
-        if (!request.payload) {
-            throw new BadRequestError("User isn't authorized, so you can't access this resource...")
-        }
-
-        const user = await this.userService.findByEmail(request.payload.email)
-
-        if (!user) {
-            throw new BadRequestError("User isn't specified...")
-        }
-
+        const createMessageDto = plainToInstance(CreateMessageDto, request.body)
         const groupId = parseInt(request.params.id)
         const message = await this.messageService.update(groupId, createMessageDto.text)
+        const messsageDto = new GetMessageDto(message)
 
         return new Response()
-            .json(HttpStatus.OK, JSON.stringify({message}))
+            .json(HttpStatus.OK, {message: messsageDto})
     }
 
     public async delete(request: Request) {

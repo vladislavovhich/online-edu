@@ -6,3 +6,5 @@ export type JwtParams = {
 export type JwtPayload = {
     email: string
 }
+
+export type Token = "accessToken" | "refreshToken"

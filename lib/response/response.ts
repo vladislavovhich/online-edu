@@ -17,8 +17,10 @@ export class Response {
         return this
     }
 
-    public json(statusCode: HttpStatus, body: string) {
-        return this.make(ContentType.JSON, statusCode, body)
+    public json(statusCode: HttpStatus, body: object) {
+        const json = JSON.stringify(body)
+
+        return this.make(ContentType.JSON, statusCode, json)
     }
 
     public text(statusCode: HttpStatus, body: string) {

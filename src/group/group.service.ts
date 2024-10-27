@@ -6,6 +6,9 @@ import { NotFoundError } from "../../lib/errors/not-found.error";
 import { MemberOpDto } from "./dto/member-op.dto";
 import { UserService } from "../user/user.service";
 import { BadRequestError } from "../../lib/errors/bad-request.error";
+import { PaginationDto } from "../common/dto/pagination.dto";
+import { GetGroupsDto } from "./dto/get-groups.dto";
+import { GetGroupDto } from "./dto/get-group.dto";
 
 export class GroupService {
     private static instance: GroupService
@@ -24,6 +27,47 @@ export class GroupService {
         }
 
         return GroupService.instance
+    }
+
+    public async getUserGroups(userId: number, paginationDto: PaginationDto) {
+        await this.userService.findOneSave(userId)
+
+        const {pageSize, offset} = paginationDto
+        const groupsMember = await this.prisma.groupMember.findMany({
+            take: pageSize,
+            skip: offset,
+            where: {
+                userId
+            },
+            include: {
+                group: {
+                    include: {
+                        creator: true,
+                        members: {
+                            include: {
+                                user: true,
+                                group: true
+                            }
+                        }
+                    }
+                }
+            }
+        })
+
+        const count = await this.prisma.groupMember.count({where: {userId}})
+        const groupsDto: GetGroupDto[] = []
+
+        for (let groupMember of groupsMember) {
+            const lastMessage = await this.prisma.groupMessage.findFirst({
+                where: { groupId: groupMember.groupId },
+                include: { sender: true },
+                orderBy: { createdAt: "desc" }
+            })
+
+            groupsDto.push(new GetGroupDto(groupMember.group, lastMessage))
+        }
+
+        return new GetGroupsDto(groupsDto, count, paginationDto)
     }
 
     public async addMember(memberOpDto: MemberOpDto) {
@@ -65,16 +109,8 @@ export class GroupService {
     }
 
     public async isMember(memberOpDto: MemberOpDto) {
-        const user = await this.userService.findOne(parseInt(memberOpDto.userId))
-        const group = await this.findOne(parseInt(memberOpDto.groupId))
-
-        if (!user) {
-            throw new NotFoundError("User not found...")
-        }
-
-        if (!group) {
-            throw new NotFoundError("Group not found...")
-        }
+        const user = await this.userService.findOneSave(memberOpDto.userId)
+        const group = await this.findOneSave(memberOpDto.groupId)
 
         const isMember = await this.prisma.groupMember.findFirst({
             where: {userId: user.id, groupId: group.id}
@@ -84,7 +120,28 @@ export class GroupService {
     }
     
     public async findOne(id: number) {
-        return this.prisma.group.findFirst({where: {id}})
+        return this.prisma.group.findFirst({
+            where: {id},
+            include: {
+                creator: true,
+                members: {
+                    include: {
+                        user: true,
+                        group: true
+                    }
+                }
+            }
+        })
+    }
+
+    public async findOneSave(id: number) {
+        const group = await this.findOne(id)
+
+        if (!group) {
+            throw new NotFoundError("Group not found...")
+        }
+
+        return group
     }
 
     public async create(createGroupDto: CreateGroupDto) {
@@ -96,28 +153,24 @@ export class GroupService {
             }
         })
 
-        await this.addMember({ groupId: group.id.toString(), userId: createGroupDto.userId.toString(), currentUserId: 0})
+        await this.addMember({ groupId: group.id, userId: createGroupDto.userId, currentUserId: 0})
+
+        return this.findOneSave(group.id)
     }
 
     public async update(id: number, updateGroupDto: UpdateGroupDto) {
-        const group = await this.findOne(id)
+        await this.findOneSave(id)
 
-        if (!group) {
-            throw new NotFoundError("Group not found...")
-        }
-
-        return this.prisma.group.update({
+        const group = await this.prisma.group.update({
             where: {id},
             data: updateGroupDto
         })
+
+        return this.findOneSave(id)
     }
 
     public async delete(id: number) {
-        const group = await this.findOne(id)
-
-        if (!group) {
-            throw new NotFoundError("Group not found...")
-        }
+        await this.findOneSave(id)
 
         this.prisma.group.delete({where: {id}})
     }

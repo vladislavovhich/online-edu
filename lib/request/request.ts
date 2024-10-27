@@ -120,9 +120,7 @@ export class Request {
         const params: Record<string, string> = {}
         const requestUrlSplit = requestUrl.split("/").filter((val) => val.trim() != "")
         const urlSplit = url.split("/").filter((val) => val.trim() != "")
-        
-        console.log(requestUrl, url)
-        
+
         for (let i = 0; i < requestUrlSplit.length; i++) {
             if (requestUrlSplit[i] != urlSplit[i] && urlSplit[i].includes(":")) {
                 const paramName = urlSplit[i].split(":")[1]
