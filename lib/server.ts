@@ -1,5 +1,4 @@
-import * as tls from 'tls';
-import * as fs from 'fs';
+import net from "net"
 import { Request } from './request/request';
 import { Router } from './request/router';
 import { Response } from './response/response';
@@ -20,14 +19,9 @@ export class SocketServer {
     }
 
     public start(port: number) {
-        const options: tls.TlsOptions = {
-            key: fs.readFileSync("./lib/certificate/server.key"),
-            cert: fs.readFileSync("./lib/certificate/server.cert"),
-        }
-
         this.printRoutes()
 
-        const server = tls.createServer(options, (socket) => {
+        const server = net.createServer((socket) => {
             socket.on("data", async (data) => {
                 try {
                     const requestData = data.toString()

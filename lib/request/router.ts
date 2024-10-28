@@ -3,6 +3,7 @@ import { NotFoundError } from "../errors/not-found.error"
 import { HttpMethod } from "../types/request.types"
 import { Middleware, Route, RouteAction } from "../types/router.types"
 import { Request } from "./request"
+import { Response } from "../response/response"
 
 export class Router {
     constructor(
@@ -48,6 +49,11 @@ export class Router {
     }
 
     async handle(request: Request) {
+        if (request.method == "OPTIONS") {
+            return new Response()
+                .cors()
+        }
+
         const route = this.routes.find(route => this.checkUrl(request.url, route.url) && route.method == request.method)
 
         if (!route) {

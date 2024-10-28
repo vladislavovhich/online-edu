@@ -27,6 +27,23 @@ export class Response {
         return this.make(ContentType.TEXT, statusCode, body)
     }
 
+    public cors() {
+        const headers = [
+            `HTTP/1.1 200 OK`,
+            'Access-Control-Allow-Origin: http://localhost:3000',
+            'Access-Control-Allow-Methods: POST, GET, OPTIONS, PATCH, PUT, DELETE',
+            'Access-Control-Allow-Headers: X-PINGOTHER, Content-Type',
+            'Access-Control-Max-Age: 86400',
+            'Access-Control-Allow-Credentials: true',
+            'Vary: Accept-Encoding, Origin',
+            'Keep-Alive: timeout=2, max=100',
+            'connection: keep-alive',
+            'Content-Type: text/plain',
+        ].join("\r\n");
+    
+        return headers;
+    }
+
     private make(contentType: ContentType, statusCode: HttpStatus, body: string) {
         const message = HttpStatusMessages[statusCode]
         const headers = [
@@ -34,6 +51,8 @@ export class Response {
             `Content-Type: ${contentType}`,
             `Content-Length: ${body.length}`,
             'Connection: close',
+            'Access-Control-Allow-Origin: http://localhost:3000',
+            'Access-Control-Allow-Credentials: true',
             ...(this.cookies.length > 0 ? this.cookies.map(cookie => `Set-Cookie: ${cookie.toHeader()}`) : []),
             ``,
             body

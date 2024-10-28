@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "Lecture" ADD COLUMN     "fileUrl" TEXT NOT NULL DEFAULT '',
-ADD COLUMN     "isOver" BOOLEAN NOT NULL DEFAULT false;
