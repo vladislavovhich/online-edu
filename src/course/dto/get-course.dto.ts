@@ -8,6 +8,7 @@ export class GetCourseDto {
     private studentsAmount: number
     private lecturesAmount: number
     private mentor: GetUserDto
+    private createdAt: Date
 
     constructor(
         course: Course & {
@@ -21,7 +22,8 @@ export class GetCourseDto {
             description: course.description,
             mentor: new GetUserDto(course.mentor),
             studentsAmount: course.students.length,
-            lecturesAmount: course.lectures.length
+            lecturesAmount: course.lectures.length,
+            createdAt: course.createdAt
         })
     }
 }

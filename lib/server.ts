@@ -19,8 +19,6 @@ export class SocketServer {
     }
 
     public start(port: number) {
-        this.printRoutes()
-
         const server = net.createServer((socket) => {
             socket.on("data", async (data) => {
                 try {
@@ -28,7 +26,7 @@ export class SocketServer {
 
                     const request = Request.parse(requestData)
                     const response = await this.router.handle(request)
-
+                
                     socket.write(response)
                     socket.end()
                 } catch (exception: unknown) {

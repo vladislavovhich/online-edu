@@ -1,5 +1,5 @@
 export enum ContentType {
-    JSON = "application/json",
+    JSON = "application/json; charset=utf-8",
     TEXT = "text/plain"
 }
 

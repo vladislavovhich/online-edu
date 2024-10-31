@@ -12,7 +12,7 @@ export class GetUserDto {
         Object.assign(this, {
             id: user.id,
             name: user.name,
-            username: user.surname,
+            surname: user.surname,
             email: user.email,
             role: user.role,
             createdAt: user.createdAt

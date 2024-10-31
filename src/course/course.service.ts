@@ -10,6 +10,7 @@ import { PaginationDto } from "../common/dto/pagination.dto"
 import { GetCourseDto } from "./dto/get-course.dto"
 import { GetCoursesDto } from "./dto/get-courses.dto"
 import { off } from "process"
+import { Roles } from "../common/enums"
 
 export class CourseService {
     private static instance: CourseService
@@ -30,29 +31,79 @@ export class CourseService {
         return CourseService.instance
     }
 
+    public async getMentorCourses(mentorId: number, paginationDto: PaginationDto) {
+        const user = await this.userService.findOneSave(mentorId)
+
+        if (user.role != Roles.MENTOR) {
+            throw new BadRequestError("This user isn't mentor...")
+        }
+
+        const {pageSize, offset} = paginationDto
+        const courses = await this.prisma.course.findMany({
+            take: pageSize,
+            skip: offset,
+            where: {
+                mentorId
+            },
+            include: {
+                mentor: true,
+                students: true,
+                lectures: true
+            }
+        })
+
+        const count = await this.prisma.course.count({where: { mentorId }})
+        const courseDtos = courses.map(course => new GetCourseDto(course))
+
+        return new GetCoursesDto(courseDtos, count, paginationDto)
+    }
+
     public async getCourses(userId: number, paginationDto: PaginationDto) {
         await this.userService.findOneSave(userId)
 
         const {pageSize, offset} = paginationDto
-        const studentsCourses = await this.prisma.studentCourse.findMany({
+
+        const courses = await this.prisma.course.findMany({
             take: pageSize,
             skip: offset,
             where: {
-                studentId: userId
+                OR: [
+                    {mentorId: userId},
+                    {
+                        students: {
+                            some: {
+                                studentId: userId
+                            }
+                        }
+                    }
+                ]
             },
             include: {
-                course: {
+                students: {
                     include: {
-                        mentor: true,
-                        lectures: true,
-                        students: true
+                        student: true
                     }
-                }
-            }
+                },
+                lectures: true,
+                mentor: true
+            },
         })
 
-        const count = await this.prisma.studentCourse.count({where: { studentId: userId}})
-        const courseDtos = studentsCourses.map(studentsCourses => new GetCourseDto(studentsCourses.course))
+        const count = await this.prisma.course.count({
+            where: {
+                OR: [
+                    {mentorId: userId},
+                    {
+                        students: {
+                            some: {
+                                studentId: userId
+                            }
+                        }
+                    }
+                ]
+            }
+        })
+        const courseDtos = courses.map(course => new GetCourseDto(course))
 
         return new GetCoursesDto(courseDtos, count, paginationDto)
     }

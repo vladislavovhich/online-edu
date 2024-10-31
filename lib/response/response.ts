@@ -29,7 +29,7 @@ export class Response {
 
     public cors() {
         const headers = [
-            `HTTP/1.1 200 OK`,
+            `HTTP/1.0 200 OK`,
             'Access-Control-Allow-Origin: http://localhost:3000',
             'Access-Control-Allow-Methods: POST, GET, OPTIONS, PATCH, PUT, DELETE',
             'Access-Control-Allow-Headers: X-PINGOTHER, Content-Type',
@@ -47,9 +47,9 @@ export class Response {
     private make(contentType: ContentType, statusCode: HttpStatus, body: string) {
         const message = HttpStatusMessages[statusCode]
         const headers = [
-            `HTTP/1.1 ${statusCode} ${message}`,
+            `HTTP/1.0 ${statusCode} ${message}`,
             `Content-Type: ${contentType}`,
-            `Content-Length: ${body.length}`,
+            `Content-Length: ${Buffer.byteLength(body)}`,
             'Connection: close',
             'Access-Control-Allow-Origin: http://localhost:3000',
             'Access-Control-Allow-Credentials: true',
