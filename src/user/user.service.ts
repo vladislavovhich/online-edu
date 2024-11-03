@@ -5,6 +5,9 @@ import { SignUpDto } from "../auth/dto/sign-up.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { NotFoundError } from "../../lib/errors/not-found.error";
 import * as bcrypt from "bcrypt";
+import { PaginationDto } from "../common/dto/pagination.dto";
+import { GetUserInfoDto } from "./dto/get-user.dto";
+import { PaginationResponseDto } from "../common/dto/pagination-res.dto";
 
 export class UserService {
     private static instance: UserService;
@@ -19,6 +22,22 @@ export class UserService {
         }
 
         return UserService.instance;
+    }
+
+    public async findAll(paginationDto: PaginationDto) {
+        const { pageSize, offset } = paginationDto;
+        const users = await this.prisma.user.findMany({
+            skip: offset,
+            take: pageSize,
+        });
+        const count = await this.prisma.user.count();
+        const userDtos = users.map((user) => new GetUserInfoDto(user));
+
+        return new PaginationResponseDto<GetUserInfoDto>(
+            userDtos,
+            count,
+            paginationDto
+        );
     }
 
     public findByEmail(email: string) {

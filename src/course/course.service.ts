@@ -11,6 +11,8 @@ import { GetCourseDto } from "./dto/get-course.dto";
 import { GetCoursesDto } from "./dto/get-courses.dto";
 import { off } from "process";
 import { Roles } from "../common/enums";
+import { GetUserDto, GetUserInfoDto } from "../user/dto/get-user.dto";
+import { PaginationResponseDto } from "../common/dto/pagination-res.dto";
 
 export class CourseService {
     private static instance: CourseService;
@@ -29,6 +31,35 @@ export class CourseService {
         }
 
         return CourseService.instance;
+    }
+
+    public async getCourseStudents(
+        courseId: number,
+        paginationDto: PaginationDto
+    ) {
+        await this.findOneSave(courseId);
+
+        const { page, pageSize, offset } = paginationDto;
+        const students = await this.prisma.studentCourse.findMany({
+            take: pageSize,
+            skip: offset,
+            where: {
+                courseId,
+            },
+            include: {
+                student: true,
+            },
+        });
+        const count = await this.prisma.studentCourse.count({
+            where: { courseId },
+        });
+        const userDtos = students.map((st) => new GetUserInfoDto(st.student));
+
+        return new PaginationResponseDto<GetUserInfoDto>(
+            userDtos,
+            count,
+            paginationDto
+        );
     }
 
     public async getCourses(userId: number, paginationDto: PaginationDto) {

@@ -8,6 +8,7 @@ import { NotFoundError } from "../../lib/errors/not-found.error";
 import { plainToInstance } from "class-transformer";
 import { GetUserDto } from "./dto/get-user.dto";
 import { extractUser } from "../common/helpers/extract-user.helper";
+import { PaginationDto } from "../common/dto/pagination.dto";
 
 export class UserController {
     private static instance: UserController;
@@ -22,6 +23,13 @@ export class UserController {
         }
 
         return UserController.instance;
+    }
+
+    public async findAll(request: Request) {
+        const paginationDto = plainToInstance(PaginationDto, request.query);
+        const users = await this.userService.findAll(paginationDto);
+
+        return new Response().json(HttpStatus.OK, users);
     }
 
     public async findOne(request: Request) {

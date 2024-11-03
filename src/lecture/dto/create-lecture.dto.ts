@@ -1,26 +1,33 @@
-import { Type } from "class-transformer"
-import { IsDateString, IsISO8601, IsString, MaxLength, MinDate, MinLength } from "class-validator"
+import { Type } from "class-transformer";
+import {
+    IsDateString,
+    IsISO8601,
+    IsString,
+    MaxLength,
+    MinDate,
+    MinLength,
+} from "class-validator";
 
 export class CreateLectureDto {
     @IsString()
     @MinLength(1)
     @MaxLength(35)
-    name: string
+    name: string;
 
     @IsString()
     @MinLength(1)
     @MaxLength(255)
-    description: string
+    description: string;
 
     @IsString()
     @MinLength(1)
     @MaxLength(35)
-    subject: string
+    subject: string;
 
     @Type(() => Date)
     @MinDate(() => new Date(Date.now()))
-    date: Date
+    date: Date;
 
-    mentorId: number
-    courseId: number
+    mentorId: number;
+    courseId: number;
 }
