@@ -1,17 +1,18 @@
-import { MinLength, MaxLength } from "class-validator"
+import { MinLength, MaxLength, IsOptional } from "class-validator";
 
 export class UpdateUserDto {
+    @IsOptional()
     @MinLength(5)
     @MaxLength(15)
-    password: string
+    password?: string;
 
     @MinLength(1)
     @MaxLength(15)
-    name: string
+    name: string;
 
     @MinLength(1)
     @MaxLength(15)
-    surname: string
+    surname: string;
 
-    userId: number
+    userId: number;
 }

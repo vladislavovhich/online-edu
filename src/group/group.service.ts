@@ -11,7 +11,7 @@ import { GetGroupsDto } from "./dto/get-groups.dto";
 import { GetGroupDto } from "./dto/get-group.dto";
 
 export class GroupService {
-    private static instance: GroupService
+    private static instance: GroupService;
 
     private constructor(
         private readonly prisma: PrismaClient,
@@ -20,24 +20,24 @@ export class GroupService {
 
     public static async GetInstance() {
         if (!GroupService.instance) {
-            const prisma = await PrismaService.GetInstance()
-            const userService = await UserService.GetInstance()
+            const prisma = await PrismaService.GetInstance();
+            const userService = await UserService.GetInstance();
 
-            GroupService.instance = new GroupService(prisma, userService)
+            GroupService.instance = new GroupService(prisma, userService);
         }
 
-        return GroupService.instance
+        return GroupService.instance;
     }
 
     public async getUserGroups(userId: number, paginationDto: PaginationDto) {
-        await this.userService.findOneSave(userId)
+        await this.userService.findOneSave(userId);
 
-        const {pageSize, offset} = paginationDto
+        const { pageSize, offset } = paginationDto;
         const groupsMember = await this.prisma.groupMember.findMany({
             take: pageSize,
             skip: offset,
             where: {
-                userId
+                userId,
             },
             include: {
                 group: {
@@ -46,102 +46,110 @@ export class GroupService {
                         members: {
                             include: {
                                 user: true,
-                                group: true
-                            }
-                        }
-                    }
-                }
-            }
-        })
+                                group: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
 
-        const count = await this.prisma.groupMember.count({where: {userId}})
-        const groupsDto: GetGroupDto[] = []
+        const count = await this.prisma.groupMember.count({
+            where: { userId },
+        });
+        const groupsDto: GetGroupDto[] = [];
 
         for (let groupMember of groupsMember) {
             const lastMessage = await this.prisma.groupMessage.findFirst({
                 where: { groupId: groupMember.groupId },
                 include: { sender: true },
-                orderBy: { createdAt: "desc" }
-            })
+                orderBy: { createdAt: "desc" },
+            });
 
-            groupsDto.push(new GetGroupDto(groupMember.group, lastMessage))
+            groupsDto.push(new GetGroupDto(groupMember.group, lastMessage));
         }
 
-        return new GetGroupsDto(groupsDto, count, paginationDto)
+        return new GetGroupsDto(groupsDto, count, paginationDto);
     }
 
     public async addMember(memberOpDto: MemberOpDto) {
-        const {user, group, isMember} = await this.isMember(memberOpDto)
+        const { user, group, isMember } = await this.isMember(memberOpDto);
 
         if (isMember) {
-            throw new BadRequestError("This user is already a member of the group...")
+            throw new BadRequestError(
+                "This user is already a member of the group..."
+            );
         }
 
         if (user.id == memberOpDto.currentUserId) {
-            throw new BadRequestError("You can't join your own group...")
+            throw new BadRequestError("You can't join your own group...");
         }
 
         await this.prisma.groupMember.create({
             data: {
-                group: {connect: {id: group.id}},
-                user: {connect: {id: user.id}}
-            }
-        })
+                group: { connect: { id: group.id } },
+                user: { connect: { id: user.id } },
+            },
+        });
     }
 
     public async removeMember(memberOpDto: MemberOpDto) {
-        const {user, group, isMember} = await this.isMember(memberOpDto)
+        const { user, group, isMember } = await this.isMember(memberOpDto);
 
         if (!isMember) {
-            throw new BadRequestError("This user is not a member of the group...")
+            throw new BadRequestError(
+                "This user is not a member of the group..."
+            );
         }
 
         if (user.id == memberOpDto.currentUserId) {
-            throw new BadRequestError("You can't exclude yourself from your own group...")
+            throw new BadRequestError(
+                "You can't exclude yourself from your own group..."
+            );
         }
 
         await this.prisma.groupMember.deleteMany({
             where: {
                 groupId: group.id,
-                userId: user.id
-            }
-        })
+                userId: user.id,
+            },
+        });
     }
 
     public async isMember(memberOpDto: MemberOpDto) {
-        const user = await this.userService.findOneSave(memberOpDto.userId)
-        const group = await this.findOneSave(memberOpDto.groupId)
+        const user = await this.userService.findOneSave(memberOpDto.userId);
+        const group = await this.findOneSave(memberOpDto.groupId);
 
         const isMember = await this.prisma.groupMember.findFirst({
-            where: {userId: user.id, groupId: group.id}
-        })
+            where: { userId: user.id, groupId: group.id },
+        });
 
-        return {user, group, isMember: !!isMember}
+        return { user, group, isMember: !!isMember };
     }
-    
+
     public async findOne(id: number) {
         return this.prisma.group.findFirst({
-            where: {id},
+            where: { id },
             include: {
                 creator: true,
                 members: {
                     include: {
                         user: true,
-                        group: true
-                    }
-                }
-            }
-        })
+                        group: true,
+                    },
+                },
+            },
+        });
     }
 
     public async findOneSave(id: number) {
-        const group = await this.findOne(id)
+        const group = await this.findOne(id);
 
         if (!group) {
-            throw new NotFoundError("Group not found...")
+            throw new NotFoundError("Group not found...");
         }
 
-        return group
+        return group;
     }
 
     public async create(createGroupDto: CreateGroupDto) {
@@ -149,29 +157,33 @@ export class GroupService {
             data: {
                 name: createGroupDto.name,
                 description: createGroupDto.description,
-                creator: {connect: {id: createGroupDto.userId}}
-            }
-        })
+                creator: { connect: { id: createGroupDto.userId } },
+            },
+        });
 
-        await this.addMember({ groupId: group.id, userId: createGroupDto.userId, currentUserId: 0})
+        await this.addMember({
+            groupId: group.id,
+            userId: createGroupDto.userId,
+            currentUserId: 0,
+        });
 
-        return this.findOneSave(group.id)
+        return this.findOneSave(group.id);
     }
 
     public async update(id: number, updateGroupDto: UpdateGroupDto) {
-        await this.findOneSave(id)
+        await this.findOneSave(id);
 
         const group = await this.prisma.group.update({
-            where: {id},
-            data: updateGroupDto
-        })
+            where: { id },
+            data: updateGroupDto,
+        });
 
-        return this.findOneSave(id)
+        return this.findOneSave(id);
     }
 
     public async delete(id: number) {
-        await this.findOneSave(id)
+        await this.findOneSave(id);
 
-        this.prisma.group.delete({where: {id}})
+        this.prisma.group.delete({ where: { id } });
     }
 }

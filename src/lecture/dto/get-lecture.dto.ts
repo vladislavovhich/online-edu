@@ -1,14 +1,14 @@
-import { Lecture } from "@prisma/client"
+import { Lecture } from "@prisma/client";
 
 export class GetLectureDto {
-    private id: number
-    private name: string
-    private description: string
-    private subject: string
-    private date: Date
-    private isOver: boolean
-    private fileUrl: string
-    private createdAt: Date
+    private id: number;
+    private name: string;
+    private description: string;
+    private subject: string;
+    private date: Date;
+    private isOver: boolean;
+    private fileUrl: string;
+    private createdAt: Date;
 
     constructor(lecture: Lecture) {
         Object.assign(this, {
@@ -18,7 +18,8 @@ export class GetLectureDto {
             subject: lecture.subject,
             isOver: lecture.isOver,
             fileUrl: lecture.fileUrl,
-            createdAt: lecture.createdAt
-        })
+            createdAt: lecture.createdAt,
+            date: lecture.date,
+        });
     }
 }
