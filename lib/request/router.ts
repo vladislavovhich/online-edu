@@ -101,6 +101,10 @@ export class Router {
         const urlSplit = url.split("/").filter((val) => val.trim() != "");
 
         if (!url.includes(":")) {
+            if (urlSplit.length != requestUrlSplit.length) {
+                return false;
+            }
+
             for (let i = 0; i < urlSplit.length; i++) {
                 if (!requestUrlSplit[i].startsWith(urlSplit[i])) {
                     return false;
