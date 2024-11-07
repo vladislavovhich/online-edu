@@ -175,7 +175,10 @@ export class GroupService {
 
         const group = await this.prisma.group.update({
             where: { id },
-            data: updateGroupDto,
+            data: {
+                name: updateGroupDto.name,
+                description: updateGroupDto.description,
+            },
         });
 
         return this.findOneSave(id);
@@ -184,6 +187,6 @@ export class GroupService {
     public async delete(id: number) {
         await this.findOneSave(id);
 
-        this.prisma.group.delete({ where: { id } });
+        await this.prisma.group.delete({ where: { id } });
     }
 }

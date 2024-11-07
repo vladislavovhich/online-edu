@@ -24,7 +24,7 @@ export const createGroupRouter = async () => {
     ]);
 
     router.delete(
-        "/groups/:groupId/remove-member/:userId",
+        "/groups/:groupId/members/:userId",
         group.removeMember.bind(group),
         [
             CheckAuthorizedMiddleware("accessToken", "jwt"),
@@ -38,7 +38,7 @@ export const createGroupRouter = async () => {
     );
 
     router.put(
-        "/groups/:groupId/add-member/:userId",
+        "/groups/:groupId/members/:userId",
         group.addMember.bind(group),
         [
             CheckAuthorizedMiddleware("accessToken", "jwt"),

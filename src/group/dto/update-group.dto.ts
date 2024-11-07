@@ -1,15 +1,15 @@
-import { MinLength, MaxLength, IsOptional } from "class-validator"
+import { MinLength, MaxLength, IsOptional } from "class-validator";
 
 export class UpdateGroupDto {
     @IsOptional()
     @MinLength(1)
     @MaxLength(25)
-    name?: string
+    name?: string;
 
     @IsOptional()
     @MinLength(1)
-    @MaxLength(25)
-    description?: string
-    
-    userId: number
+    @MaxLength(255)
+    description?: string;
+
+    userId: number;
 }

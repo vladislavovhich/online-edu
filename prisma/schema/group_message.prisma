@@ -3,10 +3,10 @@ model GroupMessage {
 
     text String
 
-    sender User @relation(name: "group_message_sender", fields: [senderId], references: [id])
+    sender User @relation(name: "group_message_sender", fields: [senderId], references: [id], onDelete: Cascade)
     senderId Int
 
-    group Group @relation(name: "group_message", fields: [groupId], references: [id])
+    group Group @relation(name: "group_message", fields: [groupId], references: [id], onDelete: Cascade)
     groupId Int
 
     createdAt   DateTime @default(now())

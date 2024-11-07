@@ -4,7 +4,7 @@ model Group {
     name       String
     description String
 
-    creator User @relation(name: "group_creator", fields: [creatorId], references: [id])
+    creator User @relation(name: "group_creator", fields: [creatorId], references: [id], onDelete: Cascade)
     creatorId Int
 
     members GroupMember[] @relation(name: "group_member")

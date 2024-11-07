@@ -35,10 +35,12 @@ export class GroupController {
     }
 
     public async addMember(request: Request) {
-        const memberOpDto = plainToInstance(MemberOpDto, request.body);
+        const memberOpDto = plainToInstance(MemberOpDto, request.params);
         const user = await extractUser(request);
 
         memberOpDto.currentUserId = user.id;
+
+        console.log(memberOpDto);
 
         await this.groupService.addMember(memberOpDto);
 

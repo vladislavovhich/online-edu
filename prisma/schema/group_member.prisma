@@ -1,9 +1,9 @@
 model GroupMember {
     groupId Int
-    group Group @relation(fields: [groupId], references: [id], name: "group_member")
+    group Group @relation(fields: [groupId], references: [id], name: "group_member", onDelete: Cascade)
 
     userId Int
-    user User @relation(fields: [userId], references: [id], name: "group_member")
+    user User @relation(fields: [userId], references: [id], name: "group_member", onDelete: Cascade)
 
     @@id([groupId, userId])
 }
