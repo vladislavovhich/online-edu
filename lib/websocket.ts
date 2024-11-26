@@ -18,10 +18,16 @@ export class WS {
         this.clients.push(ws);
         this.sendById(id, JSON.stringify({ id }));
 
-        socket.on("data", (data: Buffer) => {
-            const message = this.decodeWebSocketMessage(data);
+        let raw = "";
 
-            cb(message, ws);
+        socket.on("data", (data: Buffer) => {
+            raw += data.toString();
+
+            if (data.length < 65536) {
+                console.log(raw);
+
+                raw = "";
+            }
         });
 
         socket.on("close", () => {

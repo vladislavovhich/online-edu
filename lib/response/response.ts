@@ -1,63 +1,75 @@
 import { Cookie } from "./cookie";
-import { ContentType, HttpStatus, HttpStatusMessages} from "../types/response.types";
+import {
+    ContentType,
+    HttpStatus,
+    HttpStatusMessages,
+} from "../types/response.types";
 
 export class Response {
-    private cookies: Cookie[] = []
+    private cookies: Cookie[] = [];
 
     setCookie(name: string, value: string, options: Record<string, any>) {
-        this.cookies.push(new Cookie(name, value, options))
+        this.cookies.push(new Cookie(name, value, options));
 
-        return this
+        return this;
     }
 
     removeCookie(name: string) {
-        this.cookies = this.cookies.filter(cookie => cookie.name != name)
-        this.cookies.push(new Cookie(name, '', {"Max-Age": "0", "path": "/"}))
+        this.cookies = this.cookies.filter((cookie) => cookie.name != name);
+        this.cookies.push(new Cookie(name, "", { "Max-Age": "0", path: "/" }));
 
-        return this
+        return this;
     }
 
     public json(statusCode: HttpStatus, body: object) {
-        const json = JSON.stringify(body)
+        const json = JSON.stringify(body);
 
-        return this.make(ContentType.JSON, statusCode, json)
+        return this.make(ContentType.JSON, statusCode, json);
     }
 
     public text(statusCode: HttpStatus, body: string) {
-        return this.make(ContentType.TEXT, statusCode, body)
+        return this.make(ContentType.TEXT, statusCode, body);
     }
 
     public cors() {
         const headers = [
             `HTTP/1.0 200 OK`,
-            'Access-Control-Allow-Origin: http://localhost:3000',
-            'Access-Control-Allow-Methods: POST, GET, OPTIONS, PATCH, PUT, DELETE',
-            'Access-Control-Allow-Headers: X-PINGOTHER, Content-Type',
-            'Access-Control-Max-Age: 86400',
-            'Access-Control-Allow-Credentials: true',
-            'Vary: Accept-Encoding, Origin',
-            'Keep-Alive: timeout=2, max=100',
-            'connection: keep-alive',
-            'Content-Type: text/plain',
+            "Access-Control-Allow-Origin: http://192.168.0.127:3000",
+            "Access-Control-Allow-Methods: POST, GET, OPTIONS, PATCH, PUT, DELETE",
+            "Access-Control-Allow-Headers: X-PINGOTHER, Content-Type",
+            "Access-Control-Max-Age: 86400",
+            "Access-Control-Allow-Credentials: true",
+            "Vary: Accept-Encoding, Origin",
+            "Keep-Alive: timeout=2, max=100",
+            "connection: keep-alive",
+            "Content-Type: text/plain",
         ].join("\r\n");
-    
+
         return headers;
     }
 
-    private make(contentType: ContentType, statusCode: HttpStatus, body: string) {
-        const message = HttpStatusMessages[statusCode]
+    public make(
+        contentType: ContentType,
+        statusCode: HttpStatus,
+        body: string
+    ) {
+        const message = HttpStatusMessages[statusCode];
         const headers = [
             `HTTP/1.0 ${statusCode} ${message}`,
             `Content-Type: ${contentType}`,
             `Content-Length: ${Buffer.byteLength(body)}`,
-            'Connection: close',
-            'Access-Control-Allow-Origin: http://localhost:3000',
-            'Access-Control-Allow-Credentials: true',
-            ...(this.cookies.length > 0 ? this.cookies.map(cookie => `Set-Cookie: ${cookie.toHeader()}`) : []),
+            "Connection: close",
+            "Access-Control-Allow-Origin: http://192.168.0.127:3000",
+            "Access-Control-Allow-Credentials: true",
+            ...(this.cookies.length > 0
+                ? this.cookies.map(
+                      (cookie) => `Set-Cookie: ${cookie.toHeader()}`
+                  )
+                : []),
             ``,
-            body
-        ].join("\r\n")
+            body,
+        ].join("\r\n");
 
-        return headers
+        return headers;
     }
 }

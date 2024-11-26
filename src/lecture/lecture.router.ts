@@ -14,6 +14,34 @@ export const createLectureRouter = async () => {
     const lecture = await LectureController.GetInstance();
     const router = new Router();
 
+    router.put(
+        "/lectures/:lectureId/online",
+        lecture.makeOnline.bind(lecture),
+        [
+            CheckAuthorizedMiddleware("accessToken", "jwt"),
+            CheckRoleMiddleware([Roles.MENTOR]),
+            CheckOwnershipMiddleware(
+                "lectureId",
+                "mentorId",
+                lectureService.findOneSave.bind(lectureService)
+            ),
+        ]
+    );
+
+    router.put(
+        "/lectures/:lectureId/offline",
+        lecture.makeOnline.bind(lecture),
+        [
+            CheckAuthorizedMiddleware("accessToken", "jwt"),
+            CheckRoleMiddleware([Roles.MENTOR]),
+            CheckOwnershipMiddleware(
+                "lectureId",
+                "mentorId",
+                lectureService.findOneSave.bind(lectureService)
+            ),
+        ]
+    );
+
     router.get("/lectures/:lectureId", lecture.findOne.bind(lecture));
 
     router.get(

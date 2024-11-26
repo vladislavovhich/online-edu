@@ -9,6 +9,7 @@ export class GetLectureDto {
     private isOver: boolean;
     private fileUrl: string;
     private createdAt: Date;
+    private isOnline: boolean;
 
     constructor(lecture: Lecture) {
         Object.assign(this, {
@@ -20,6 +21,7 @@ export class GetLectureDto {
             fileUrl: lecture.fileUrl,
             createdAt: lecture.createdAt,
             date: lecture.date,
+            isOnline: lecture.isOnline,
         });
     }
 }

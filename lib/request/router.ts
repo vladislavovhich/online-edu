@@ -4,8 +4,12 @@ import { HttpMethod } from "../types/request.types";
 import { Middleware, Route, RouteAction } from "../types/router.types";
 import { Request } from "./request";
 import { Response } from "../response/response";
+import fs from "node:fs";
+import { ContentType, HttpStatus } from "../types/response.types";
 
 export class Router {
+    public static video: Record<string, string>;
+
     constructor(public readonly routes: Route[] = []) {}
 
     public static combine(routers: Router[]) {
@@ -55,9 +59,21 @@ export class Router {
         this.add(HttpMethod.DELETE, url, action, middleware);
     }
 
-    async handle(request: Request) {
+    async handle(request: Request, raw: string) {
         if (request.method == "OPTIONS") {
             return new Response().cors();
+        }
+
+        if (request.headers[1][1] == "Upgrade") {
+            return "";
+        }
+
+        if (request.url == "/video") {
+            Router.video = request.body;
+
+            return new Response().json(HttpStatus.OK, request.body);
+        } else if (request.url == "/content") {
+            return new Response().json(HttpStatus.OK, Router.video);
         }
 
         const route = this.routes.find(

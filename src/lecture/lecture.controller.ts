@@ -23,6 +23,22 @@ export class LectureController {
         return LectureController.instance;
     }
 
+    public async makeOffline(request: Request) {
+        const lectureId = parseInt(request.params.lectureId);
+
+        await this.lectureService.makeOffline(lectureId);
+
+        return new Response().text(HttpStatus.OK, "Offline");
+    }
+
+    public async makeOnline(request: Request) {
+        const lectureId = parseInt(request.params.lectureId);
+
+        await this.lectureService.makeOnline(lectureId);
+
+        return new Response().text(HttpStatus.OK, "Online");
+    }
+
     public async findOne(request: Request) {
         const lectureId = parseInt(request.params.lectureId);
         const lecture = await this.lectureService.findOneSave(lectureId);
