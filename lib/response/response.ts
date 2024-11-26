@@ -34,7 +34,7 @@ export class Response {
     public cors() {
         const headers = [
             `HTTP/1.0 200 OK`,
-            "Access-Control-Allow-Origin: http://192.168.0.127:3000",
+            "Access-Control-Allow-Origin: https://192.168.0.127:3000",
             "Access-Control-Allow-Methods: POST, GET, OPTIONS, PATCH, PUT, DELETE",
             "Access-Control-Allow-Headers: X-PINGOTHER, Content-Type",
             "Access-Control-Max-Age: 86400",
@@ -59,7 +59,7 @@ export class Response {
             `Content-Type: ${contentType}`,
             `Content-Length: ${Buffer.byteLength(body)}`,
             "Connection: close",
-            "Access-Control-Allow-Origin: http://192.168.0.127:3000",
+            "Access-Control-Allow-Origin: https://192.168.0.127:3000",
             "Access-Control-Allow-Credentials: true",
             ...(this.cookies.length > 0
                 ? this.cookies.map(

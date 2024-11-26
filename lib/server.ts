@@ -8,7 +8,7 @@ import { WS } from "./websocket";
 import { WsClient } from "./types/ws.types";
 import fs from "node:fs";
 import path from "node:path";
-import tls from "node:tls";
+import * as tls from "tls";
 
 export class SocketServer {
     constructor(public readonly router: Router) {}
@@ -60,13 +60,15 @@ export class SocketServer {
 
     public start(port: number) {
         const options = {
-            key: fs.readFileSync("cert/server.cert"),
-            cert: fs.readFileSync("cert/server.cert"),
+            key: fs.readFileSync(
+                "C:\\Users\\vladi\\Documents\\nodejspr\\online-edu\\online-edu\\cert\\server.key"
+            ),
+            cert: fs.readFileSync(
+                "C:\\Users\\vladi\\Documents\\nodejspr\\online-edu\\online-edu\\cert\\server.crt"
+            ),
             requestCert: false,
             rejectUnauthorized: false,
         };
-
-        console.log(options);
 
         const server = tls.createServer(options, (socket) => {
             let raw = "";
