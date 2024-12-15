@@ -1,6 +1,18 @@
 import { IsString } from "class-validator";
+import { GetUserInfoDto } from "../../user/dto/get-user.dto";
 
-export class MediaDto {
+export class MediaVideoDto {
     @IsString()
-    image: string;
+    video: string;
+}
+
+export class MediaMessageDto {
+    @IsString()
+    text: string;
+
+    user: GetUserInfoDto;
+}
+
+export class MediaUserDto {
+    user: GetUserInfoDto;
 }

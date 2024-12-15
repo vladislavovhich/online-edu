@@ -25,12 +25,12 @@ export class GetUserDto {
 }
 
 export class GetUserInfoDto {
-    private id: number;
-    private name: string;
-    private surname: string;
-    private email: string;
-    private role: string;
-    private createdAt: Date;
+    id: number;
+    name: string;
+    surname: string;
+    email: string;
+    role: string;
+    createdAt: Date;
 
     constructor(user: User) {
         Object.assign(this, {
