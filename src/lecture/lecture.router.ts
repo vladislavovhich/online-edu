@@ -10,68 +10,72 @@ import { LectureController } from "./lecture.controller";
 import { LectureService } from "./lecture.service";
 
 export const createLectureRouter = async () => {
-    const lectureService = await LectureService.GetInstance();
-    const lecture = await LectureController.GetInstance();
+    const service = await LectureService.resolve();
+    const controller = await LectureController.resolve();
     const router = new Router();
 
     router.put(
         "/lectures/:lectureId/online",
-        lecture.makeOnline.bind(lecture),
+        controller.makeOnline.bind(controller),
         [
             CheckAuthorizedMiddleware("accessToken", "jwt"),
             CheckRoleMiddleware([Roles.MENTOR]),
             CheckOwnershipMiddleware(
                 "lectureId",
                 "mentorId",
-                lectureService.findOneSave.bind(lectureService)
+                service.findOneSave.bind(service)
             ),
         ]
     );
 
     router.put(
         "/lectures/:lectureId/offline",
-        lecture.makeOnline.bind(lecture),
+        controller.makeOnline.bind(controller),
         [
             CheckAuthorizedMiddleware("accessToken", "jwt"),
             CheckRoleMiddleware([Roles.MENTOR]),
             CheckOwnershipMiddleware(
                 "lectureId",
                 "mentorId",
-                lectureService.findOneSave.bind(lectureService)
+                service.findOneSave.bind(service)
             ),
         ]
     );
 
-    router.get("/lectures/:lectureId", lecture.findOne.bind(lecture));
+    router.get("/lectures/:lectureId", controller.findOne.bind(controller));
 
     router.get(
         "/courses/:courseId/lectures",
-        lecture.getCourseLectures.bind(lecture)
+        controller.getCourseLectures.bind(controller)
     );
 
-    router.post("/courses/:courseId/lectures", lecture.create.bind(lecture), [
-        CheckAuthorizedMiddleware("accessToken", "jwt"),
-        ValidateDtoMiddleware(CreateLectureDto, "body"),
-        CheckRoleMiddleware([Roles.MENTOR]),
-    ]);
+    router.post(
+        "/courses/:courseId/lectures",
+        controller.create.bind(controller),
+        [
+            CheckAuthorizedMiddleware("accessToken", "jwt"),
+            ValidateDtoMiddleware(CreateLectureDto, "body"),
+            CheckRoleMiddleware([Roles.MENTOR]),
+        ]
+    );
 
-    router.patch("/lectures/:id", lecture.update.bind(lecture), [
+    router.patch("/lectures/:id", controller.update.bind(controller), [
         CheckAuthorizedMiddleware("accessToken", "jwt"),
         ValidateDtoMiddleware(UpdateLectureDto, "body"),
         CheckOwnershipMiddleware(
             "id",
             "mentorId",
-            lectureService.findOneSave.bind(lectureService)
+            service.findOneSave.bind(service)
         ),
         CheckRoleMiddleware([Roles.MENTOR]),
     ]);
 
-    router.delete("/lectures/:id", lecture.delete.bind(lecture), [
+    router.delete("/lectures/:id", controller.delete.bind(controller), [
         CheckAuthorizedMiddleware("accessToken", "jwt"),
         CheckOwnershipMiddleware(
             "id",
             "mentorId",
-            lectureService.findOneSave.bind(lectureService)
+            service.findOneSave.bind(service)
         ),
         CheckRoleMiddleware([Roles.MENTOR]),
     ]);

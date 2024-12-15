@@ -1,16 +1,17 @@
-import { Type } from "class-transformer"
-import { IsInt, IsNumberString, Min } from "class-validator"
+import { Type } from "class-transformer";
+import { IsInt, IsNumberString, Min } from "class-validator";
+import "reflect-metadata";
 
 export class MemberOpDto {
     @Type(() => Number)
     @IsInt()
     @Min(1)
-    groupId: number
+    groupId: number;
 
     @Type(() => Number)
     @IsInt()
     @Min(1)
-    userId: number
+    userId: number;
 
-    currentUserId: number
+    currentUserId: number;
 }

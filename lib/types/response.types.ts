@@ -1,8 +1,9 @@
 export enum ContentType {
-    JSON = "application/json; charset=utf-8",
-    TEXT = "text/plain"
+    JSON = "application/json",
+    TEXT = "text/plain",
+    FORM_DATA = "multipart/form-data",
+    FILE = "application/octet-stream",
 }
-
 export enum HttpStatus {
     OK = 200,
     CREATED = 201,
@@ -10,7 +11,7 @@ export enum HttpStatus {
     UNAUTHORIZED = 401,
     FORBIDDEN = 403,
     NOT_FOUND = 404,
-    INTERNAL_SERVER_ERROR = 500
+    INTERNAL_SERVER_ERROR = 500,
 }
 
 export const HttpStatusMessages = {
@@ -21,4 +22,4 @@ export const HttpStatusMessages = {
     [HttpStatus.FORBIDDEN]: "FORBIDDEN",
     [HttpStatus.NOT_FOUND]: "NOT FOUND",
     [HttpStatus.INTERNAL_SERVER_ERROR]: "INTERNAL SERVER ERROR",
-}
+};

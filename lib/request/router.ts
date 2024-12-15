@@ -8,8 +8,6 @@ import fs from "node:fs";
 import { ContentType, HttpStatus } from "../types/response.types";
 
 export class Router {
-    public static video: Record<string, string>;
-
     constructor(public readonly routes: Route[] = []) {}
 
     public static combine(routers: Router[]) {
@@ -59,21 +57,9 @@ export class Router {
         this.add(HttpMethod.DELETE, url, action, middleware);
     }
 
-    async handle(request: Request, raw: string) {
+    async handle(request: Request) {
         if (request.method == "OPTIONS") {
             return new Response().cors();
-        }
-
-        if (request.headers[1][1] == "Upgrade") {
-            return "";
-        }
-
-        if (request.url == "/video") {
-            Router.video = request.body;
-
-            return new Response().json(HttpStatus.OK, request.body);
-        } else if (request.url == "/content") {
-            return new Response().json(HttpStatus.OK, Router.video);
         }
 
         const route = this.routes.find(
@@ -90,21 +76,11 @@ export class Router {
 
         request.params = Request.parseParams(request.url, route.url);
 
-        for (let middleware of route.middleware) {
-            const result = await middleware(request);
-
-            if (!result) {
-                throw new BadRequestError(
-                    "Middlware can't pass you further..."
-                );
-            }
-        }
+        const response = await route.run(request);
 
         console.log(
             `${request.method} ${request.url} -> ${route.method} ${route.url}`
         );
-
-        const response = await route.action(request);
 
         return response;
     }
@@ -116,11 +92,11 @@ export class Router {
 
         const urlSplit = url.split("/").filter((val) => val.trim() != "");
 
-        if (!url.includes(":")) {
-            if (urlSplit.length != requestUrlSplit.length) {
-                return false;
-            }
+        if (urlSplit.length != requestUrlSplit.length) {
+            return false;
+        }
 
+        if (!url.includes(":")) {
             for (let i = 0; i < urlSplit.length; i++) {
                 if (!requestUrlSplit[i].startsWith(urlSplit[i])) {
                     return false;
@@ -128,10 +104,6 @@ export class Router {
             }
 
             return true;
-        }
-
-        if (urlSplit.length != requestUrlSplit.length) {
-            return false;
         }
 
         for (let i = 0; i < urlSplit.length; i++) {

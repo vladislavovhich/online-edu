@@ -17,9 +17,9 @@ export class AuthController {
 
     private constructor(private readonly authService: AuthService) {}
 
-    public static async GetInstance() {
+    public static async resolve() {
         if (!AuthController.instance) {
-            const authService = await AuthService.GetInstance();
+            const authService = await AuthService.resolve();
 
             AuthController.instance = new AuthController(authService);
         }

@@ -10,70 +10,74 @@ import { GroupService } from "./group.service";
 import { PaginationDto } from "../common/dto/pagination.dto";
 
 export const createGroupRouter = async () => {
-    const group = await GroupController.GetInstance();
-    const groupService = await GroupService.GetInstance();
+    const controller = await GroupController.resolve();
+    const service = await GroupService.resolve();
     const router = new Router();
 
-    router.get("/users/groups", group.getCurrentUserGroups.bind(group), [
-        CheckAuthorizedMiddleware("accessToken", "jwt"),
-        ValidateDtoMiddleware(PaginationDto, "query"),
-    ]);
+    router.get(
+        "/users/groups",
+        controller.getCurrentUserGroups.bind(controller),
+        [
+            CheckAuthorizedMiddleware("accessToken", "jwt"),
+            ValidateDtoMiddleware(PaginationDto, "query"),
+        ]
+    );
 
-    router.get("/users/:id/groups", group.getUserGroups.bind(group), [
+    router.get("/users/:id/groups", controller.getUserGroups.bind(controller), [
         ValidateDtoMiddleware(PaginationDto, "query"),
     ]);
 
     router.delete(
         "/groups/:groupId/members/:userId",
-        group.removeMember.bind(group),
+        controller.removeMember.bind(controller),
         [
             CheckAuthorizedMiddleware("accessToken", "jwt"),
             ValidateDtoMiddleware(MemberOpDto, "params"),
             CheckOwnershipMiddleware(
                 "groupId",
                 "creatorId",
-                groupService.findOne.bind(groupService)
+                service.findOne.bind(service)
             ),
         ]
     );
 
     router.put(
         "/groups/:groupId/members/:userId",
-        group.addMember.bind(group),
+        controller.addMember.bind(controller),
         [
             CheckAuthorizedMiddleware("accessToken", "jwt"),
             ValidateDtoMiddleware(MemberOpDto, "params"),
             CheckOwnershipMiddleware(
                 "groupId",
                 "creatorId",
-                groupService.findOne.bind(groupService)
+                service.findOne.bind(service)
             ),
         ]
     );
 
-    router.get("/groups/:id", group.findOne.bind(group));
+    router.get("/groups/:id", controller.findOne.bind(controller));
 
-    router.post("/groups", group.create.bind(group), [
+    router.post("/groups", controller.create.bind(controller), [
         CheckAuthorizedMiddleware("accessToken", "jwt"),
         ValidateDtoMiddleware(CreateGroupDto, "body"),
     ]);
 
-    router.patch("/groups/:id", group.update.bind(group), [
+    router.patch("/groups/:id", controller.update.bind(controller), [
         CheckAuthorizedMiddleware("accessToken", "jwt"),
         ValidateDtoMiddleware(UpdateGroupDto, "body"),
         CheckOwnershipMiddleware(
             "id",
             "creatorId",
-            groupService.findOne.bind(groupService)
+            service.findOne.bind(service)
         ),
     ]);
 
-    router.delete("/groups/:id", group.delete.bind(group), [
+    router.delete("/groups/:id", controller.delete.bind(controller), [
         CheckAuthorizedMiddleware("accessToken", "jwt"),
         CheckOwnershipMiddleware(
             "id",
             "creatorId",
-            groupService.findOne.bind(groupService)
+            service.findOne.bind(service)
         ),
     ]);
 

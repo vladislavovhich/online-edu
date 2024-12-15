@@ -1,34 +1,34 @@
 import { JwtPayload } from "../../src/jwt/jwt.types";
 import { BadRequestError } from "../errors/bad-request.error";
+import { FileType } from "../types/request.types";
+import { ContentType } from "../types/response.types";
 
 export class Request {
     public params: Record<string, string> = {};
     public payload?: JwtPayload;
+    public body: Record<string, any> = {};
+    public files: FileType[] = [];
 
     private constructor(
-        public readonly url: string,
-        public readonly method: string,
-        public readonly headers: string[][],
-        public readonly body: Record<string, string> = {},
-        public readonly cookie: Record<string, string> = {},
-        public readonly query: Record<string, string> = {}
+        public url: string,
+        public method: string,
+        public headers: Record<string, string>,
+        public cookie: Record<string, string> = {},
+        public query: Record<string, string> = {}
     ) {}
 
-    public static parse(rawRequest: string) {
-        const { url, method } = Request.parseUrl(rawRequest);
-        const headers = Request.parseHeaders(rawRequest);
+    public static parse(
+        headers: Record<string, string>,
+        body: Buffer | null,
+        raw: string
+    ) {
+        const { url, method } = Request.parseUrl(raw);
         const cookies = Request.parseCookies(headers);
-        const body = Request.parseBody(rawRequest.split("\r\n"), headers);
         const queryParams = Request.parseQueryParams(url);
 
-        const request = new Request(
-            url,
-            method,
-            headers,
-            body,
-            cookies,
-            queryParams
-        );
+        const request = new Request(url, method, headers, cookies, queryParams);
+
+        Request.parseBody(request, headers, body);
 
         return request;
     }
@@ -63,52 +63,48 @@ export class Request {
         return queryParams;
     }
 
-    public static parseBody(requestLines: string[], headers: string[][]) {
+    public static parseBody(
+        request: Request,
+        headers: Record<string, string>,
+        body: Buffer | null
+    ) {
         try {
-            const contentTypeIndex = headers.findIndex(
-                ([header, value]) => header == "Content-Type"
-            );
+            const contentType = headers["Content-Type"];
 
-            if (contentTypeIndex == -1) {
+            if (!body) {
                 return {};
             }
 
-            const contentType = headers[contentTypeIndex][1];
-            const headerEndIndex = requestLines.indexOf("");
-
-            if (contentType == "application/json") {
-                const body = JSON.parse(
-                    requestLines.slice(headerEndIndex + 1).join("")
-                );
-
-                return body;
+            if (contentType.includes(ContentType.JSON)) {
+                request.body = JSON.parse(body.toString());
+            } else {
+                request.files.push({
+                    name: "",
+                    size: body.length,
+                    content: body,
+                });
             }
 
             return {};
         } catch (e: unknown) {
-            throw new BadRequestError("Can't parse request body...");
+            console.log(e);
         }
     }
 
-    public static parseCookies(headers: string[][]) {
+    public static parseCookies(headers: Record<string, string>) {
         try {
             const cookies: Record<string, string> = {};
+            const cookieHeaderValue = headers["Cookie"];
 
-            for (let [header, value] of headers) {
-                if (header == "Cookie") {
-                    const rawCookies = value.split(";");
+            if (cookieHeaderValue) {
+                const rawCookies = cookieHeaderValue.split(";");
 
-                    for (let rawCookie of rawCookies) {
-                        const equalIndex = rawCookie.indexOf("=");
-                        const cookieName = rawCookie
-                            .slice(0, equalIndex)
-                            .trim();
-                        const cookieVal = rawCookie
-                            .slice(equalIndex + 1)
-                            .trim();
+                for (let rawCookie of rawCookies) {
+                    const equalIndex = rawCookie.indexOf("=");
+                    const cookieName = rawCookie.slice(0, equalIndex).trim();
+                    const cookieVal = rawCookie.slice(equalIndex + 1).trim();
 
-                        cookies[cookieName] = cookieVal;
-                    }
+                    cookies[cookieName] = cookieVal;
                 }
             }
 
@@ -119,7 +115,9 @@ export class Request {
     }
 
     public static processHeaders(rawHeadersLines: string[]) {
-        return rawHeadersLines.map((headerLine) => {
+        const headers: Record<string, string> = {};
+
+        rawHeadersLines.forEach((headerLine) => {
             const index = headerLine.indexOf(":");
 
             const header = headerLine
@@ -133,8 +131,10 @@ export class Request {
 
             const value = headerLine.slice(index + 1).trim();
 
-            return [header, value];
+            headers[header] = value;
         });
+
+        return headers;
     }
 
     public static parseParams(requestUrl: string, url: string) {

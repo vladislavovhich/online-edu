@@ -16,11 +16,11 @@ export class AuthService {
         private jwtService: JwtService
     ) {}
 
-    public static async GetInstance() {
+    public static async resolve() {
         if (!AuthService.instance) {
-            const prisma = await PrismaService.GetInstance();
-            const userService = await UserService.GetInstance();
-            const jwtService = JwtService.GetInstance();
+            const prisma = await PrismaService.resolve();
+            const userService = await UserService.resolve();
+            const jwtService = JwtService.resolve();
 
             AuthService.instance = new AuthService(
                 prisma,

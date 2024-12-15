@@ -10,24 +10,24 @@ import { SignInDto } from "./dto/sign-in.dto";
 import { CheckAuthorizedMiddleware } from "./middleware/check-authorized.middleware";
 
 export const createAuthRouter = async () => {
-    const auth = await AuthController.GetInstance()
-    const router = new Router()
+    const controller = await AuthController.resolve();
+    const router = new Router();
 
-    router.post("/auth/sign-up", auth.signUp.bind(auth), [
-        ValidateDtoMiddleware(SignUpDto, 'body')
-    ])
+    router.post("/auth/sign-up", controller.signUp.bind(controller), [
+        ValidateDtoMiddleware(SignUpDto, "body"),
+    ]);
 
-    router.post("/auth/sign-in", auth.signIn.bind(auth), [
-        ValidateDtoMiddleware(SignInDto, 'body')
-    ])
+    router.post("/auth/sign-in", controller.signIn.bind(controller), [
+        ValidateDtoMiddleware(SignInDto, "body"),
+    ]);
 
-    router.post("/auth/sign-out", auth.signOut.bind(auth), [
-        CheckAuthorizedMiddleware('accessToken', 'jwt')
-    ])
+    router.post("/auth/sign-out", controller.signOut.bind(controller), [
+        CheckAuthorizedMiddleware("accessToken", "jwt"),
+    ]);
 
-    router.get("/auth/me", auth.me.bind(auth), [
-        CheckAuthorizedMiddleware("accessToken", "jwt")
-    ])
+    router.get("/auth/me", controller.me.bind(controller), [
+        CheckAuthorizedMiddleware("accessToken", "jwt"),
+    ]);
 
-    return router
-}
+    return router;
+};

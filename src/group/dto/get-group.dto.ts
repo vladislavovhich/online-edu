@@ -3,12 +3,12 @@ import { GetUserDto, GetUserInfoDto } from "../../user/dto/get-user.dto";
 import { GetMessageDto } from "../../message/dto/get-message.dto";
 
 export class GetGroupDto {
-    private id: number;
-    private name: string;
-    private description: string;
-    private creator: GetUserDto;
-    private members: GetUserDto[];
-    private lastMessage: GetMessageDto | null;
+    id: number;
+    name: string;
+    description: string;
+    creator: GetUserDto;
+    members: GetUserDto[];
+    lastMessage: GetMessageDto | null;
 
     constructor(
         group: Group & {

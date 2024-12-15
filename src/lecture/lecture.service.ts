@@ -14,10 +14,10 @@ export class LectureService {
         private readonly courseService: CourseService
     ) {}
 
-    public static async GetInstance() {
+    public static async resolve() {
         if (!LectureService.instance) {
-            const prisma = await PrismaService.GetInstance();
-            const courseService = await CourseService.GetInstance();
+            const prisma = await PrismaService.resolve();
+            const courseService = await CourseService.resolve();
 
             LectureService.instance = new LectureService(prisma, courseService);
         }

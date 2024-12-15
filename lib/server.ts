@@ -4,11 +4,10 @@ import { Router } from "./request/router";
 import { Response } from "./response/response";
 import { ContentType, HttpStatus } from "./types/response.types";
 import { HttpError } from "./errors/http-common.error";
-import { WS } from "./websocket";
-import { WsClient } from "./types/ws.types";
 import fs from "node:fs";
 import path from "node:path";
 import * as tls from "tls";
+import { ServerHandler } from "./server-handler";
 
 export class SocketServer {
     constructor(public readonly router: Router) {}
@@ -20,41 +19,6 @@ export class SocketServer {
             console.log(
                 `[${route.method}]${" ".repeat(zerosAmount)} ${route.url}`
             );
-        }
-    }
-
-    public async handleHttpRequest(data: string, socket: net.Socket) {
-        try {
-            const requestData = data.toString();
-            const request = Request.parse(requestData);
-            const response = await this.router.handle(request, requestData);
-
-            socket.write(response);
-            socket.end();
-        } catch (exception: unknown) {
-            const response = new Response();
-
-            let responseText = "";
-
-            if (exception instanceof HttpError) {
-                responseText = response.text(
-                    exception.statusCode,
-                    exception.message
-                );
-            } else if (exception instanceof Error) {
-                responseText = response.text(
-                    HttpStatus.BAD_REQUEST,
-                    `${exception.message}, ${exception.stack}`
-                );
-            } else {
-                responseText = response.text(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Some error occured..."
-                );
-            }
-
-            socket.write(responseText);
-            socket.end();
         }
     }
 
@@ -70,83 +34,40 @@ export class SocketServer {
             rejectUnauthorized: false,
         };
 
-        const server = tls.createServer(options, (socket) => {
-            let raw = "";
+        const server = tls.createServer(options, async (socket) => {
+            try {
+                const { headers, body, raw } = await ServerHandler.read(socket);
+                const request = Request.parse(headers, body, raw);
 
-            socket.on("error", (e) => {
-                console.log(e.message);
-            });
+                const response = await this.router.handle(request);
 
-            socket.on("data", async (data) => {
-                try {
-                    raw += data.toString();
+                await ServerHandler.send(response, socket);
+            } catch (exception: unknown) {
+                const response = new Response();
 
-                    if (data.length < 65536) {
-                        const request = Request.parse(raw);
-                        const response = await this.router.handle(request, raw);
+                let data: Buffer;
 
-                        const chunkSize = 65000;
-                        let offset = 0;
-
-                        if (raw.length < chunkSize) {
-                            socket.write(response);
-                            socket.end();
-                            return;
-                        }
-
-                        const sendChunk = () => {
-                            if (offset < response.length) {
-                                const chunk = response.slice(
-                                    offset,
-                                    offset + chunkSize
-                                );
-
-                                const success = socket.write(
-                                    chunk,
-                                    "utf8",
-                                    () => {
-                                        offset += chunk.length;
-                                        if (offset < response.length) {
-                                            sendChunk();
-                                        } else {
-                                        }
-                                    }
-                                );
-
-                                if (!success) {
-                                    socket.once("drain", sendChunk);
-                                }
-                            }
-                        };
-
-                        sendChunk();
-                    }
-                } catch (exception: unknown) {
-                    const response = new Response();
-
-                    let responseText = "";
-
-                    if (exception instanceof HttpError) {
-                        responseText = response.text(
-                            exception.statusCode,
-                            exception.message
-                        );
-                    } else if (exception instanceof Error) {
-                        responseText = response.text(
-                            HttpStatus.BAD_REQUEST,
-                            `${exception.message}, ${exception.stack}`
-                        );
-                    } else {
-                        responseText = response.text(
-                            HttpStatus.INTERNAL_SERVER_ERROR,
-                            "Some error occured..."
-                        );
-                    }
-
-                    socket.write(responseText);
-                    socket.end();
+                if (exception instanceof HttpError) {
+                    data = response.text(
+                        exception.statusCode,
+                        exception.message
+                    );
+                } else if (exception instanceof Error) {
+                    data = response.text(
+                        HttpStatus.BAD_REQUEST,
+                        `${exception.message}, ${exception.stack}`
+                    );
+                } else {
+                    data = response.text(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Some error occured..."
+                    );
                 }
-            });
+
+                await ServerHandler.send(data, socket);
+            } finally {
+                socket.end();
+            }
         });
 
         server.listen(port);

@@ -8,6 +8,7 @@ import { createMessageRouter } from "./message/message.router";
 import { createUserRouter } from "./user/user.router";
 import "reflect-metadata";
 import fs from "node:fs";
+import { createMediaRouter } from "./media/media.router";
 
 const start = async (port: number) => {
     const authRouter = await createAuthRouter();
@@ -16,6 +17,7 @@ const start = async (port: number) => {
     const groupRouter = await createGroupRouter();
     const messageRouter = await createMessageRouter();
     const lectureRouter = await createLectureRouter();
+    const mediaRouter = await createMediaRouter();
 
     const router = Router.combine([
         lectureRouter,
@@ -24,6 +26,7 @@ const start = async (port: number) => {
         userRouter,
         messageRouter,
         groupRouter,
+        mediaRouter,
     ]);
 
     const server = new SocketServer(router);

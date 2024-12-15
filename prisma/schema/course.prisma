@@ -4,7 +4,7 @@ model Course {
     name       String
     description String
 
-    mentor User @relation(name: "course_mentor", fields: [mentorId], references: [id])
+    mentor User @relation(name: "course_mentor", fields: [mentorId], references: [id], onDelete: Cascade)
     mentorId Int
     
     students StudentCourse[] @relation(name: "student_course")

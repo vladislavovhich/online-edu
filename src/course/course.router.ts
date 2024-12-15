@@ -12,60 +12,66 @@ import { UpdateCourseDto } from "./dto/update-course.dto";
 import { PaginationDto } from "../common/dto/pagination.dto";
 
 export const createCourseRouter = async () => {
-    const course = await CourseController.GetInstance();
-    const courseService = await CourseService.GetInstance();
+    const controller = await CourseController.resolve();
+    const service = await CourseService.resolve();
 
     const router = new Router();
 
     router.get(
         "/courses/:courseId/students",
-        course.getCourseStudents.bind(course),
+        controller.getCourseStudents.bind(controller),
         [ValidateDtoMiddleware(PaginationDto, "query")]
     );
 
-    router.get("/users/:userId/courses", course.getCourses.bind(course), [
-        ValidateDtoMiddleware(PaginationDto, "query"),
-    ]);
+    router.get(
+        "/users/:userId/courses",
+        controller.getCourses.bind(controller),
+        [ValidateDtoMiddleware(PaginationDto, "query")]
+    );
 
-    router.put("/courses/:id/subscribe", course.subscribe.bind(course), [
-        CheckAuthorizedMiddleware("accessToken", "jwt"),
-    ]);
+    router.put(
+        "/courses/:id/subscribe",
+        controller.subscribe.bind(controller),
+        [CheckAuthorizedMiddleware("accessToken", "jwt")]
+    );
 
-    router.put("/courses/:id/unsubscribe", course.unsubscribe.bind(course), [
-        CheckAuthorizedMiddleware("accessToken", "jwt"),
-    ]);
+    router.put(
+        "/courses/:id/unsubscribe",
+        controller.unsubscribe.bind(controller),
+        [CheckAuthorizedMiddleware("accessToken", "jwt")]
+    );
 
-    router.post("/courses", course.create.bind(course), [
+    router.post("/courses", controller.create.bind(controller), [
         CheckAuthorizedMiddleware("accessToken", "jwt"),
         CheckRoleMiddleware([Roles.MENTOR]),
         ValidateDtoMiddleware(CreateCourseDto, "body"),
     ]);
 
-    router.patch("/courses/:id", course.update.bind(course), [
+    router.patch("/courses/:id", controller.update.bind(controller), [
         CheckAuthorizedMiddleware("accessToken", "jwt"),
         CheckRoleMiddleware([Roles.MENTOR]),
         CheckOwnershipMiddleware<Course>(
             "id",
             "mentorId",
-            courseService.findOne.bind(courseService)
+            service.findOne.bind(service)
         ),
         ValidateDtoMiddleware(UpdateCourseDto, "body"),
     ]);
 
-    router.delete("/courses/:id", course.delete.bind(course), [
+    router.delete("/courses/:id", controller.delete.bind(controller), [
         CheckAuthorizedMiddleware("accessToken", "jwt"),
         CheckRoleMiddleware([Roles.MENTOR]),
         CheckOwnershipMiddleware<Course>(
             "id",
             "mentorId",
-            courseService.findOne.bind(courseService)
+            service.findOne.bind(service)
         ),
         CheckAuthorizedMiddleware("accessToken", "jwt"),
     ]);
 
-    router.get("/courses/:id", course.findOne.bind(course));
+    router.get("/courses/:id", controller.findOne.bind(controller));
 
-    router.get("/courses", course.findAll.bind(course), [
+    router.get("/courses", controller.findAll.bind(controller), [
         ValidateDtoMiddleware(PaginationDto, "query"),
     ]);
 

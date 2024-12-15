@@ -1,37 +1,51 @@
-import { Router } from "../../lib/request/router"
-import { CheckAuthorizedMiddleware } from "../auth/middleware/check-authorized.middleware"
-import { PaginationDto } from "../common/dto/pagination.dto"
-import { CheckOwnershipMiddleware } from "../common/middleware/check-ownership.middleware"
-import { ValidateDtoMiddleware } from "../common/middleware/validate-dto.middleware"
-import { CreateMessageDto } from "./dto/create-message.dto"
-import { MessageController } from "./message.controller"
-import { MessageService } from "./message.service"
-import { GroupMessage } from "@prisma/client"
+import { Router } from "../../lib/request/router";
+import { CheckAuthorizedMiddleware } from "../auth/middleware/check-authorized.middleware";
+import { PaginationDto } from "../common/dto/pagination.dto";
+import { CheckOwnershipMiddleware } from "../common/middleware/check-ownership.middleware";
+import { ValidateDtoMiddleware } from "../common/middleware/validate-dto.middleware";
+import { CreateMessageDto } from "./dto/create-message.dto";
+import { MessageController } from "./message.controller";
+import { MessageService } from "./message.service";
+import { GroupMessage } from "@prisma/client";
 
 export const createMessageRouter = async () => {
-    const message = await MessageController.GetInstance()
-    const messageService = await MessageService.GetInstance()
-    const router = new Router()
+    const controller = await MessageController.resolve();
+    const service = await MessageService.resolve();
+    const router = new Router();
 
-    router.get("/groups/:id/messages", message.getGroupMessages.bind(message), [
-        ValidateDtoMiddleware(PaginationDto, "query")
-    ])
+    router.get(
+        "/groups/:id/messages",
+        controller.getGroupMessages.bind(controller),
+        [ValidateDtoMiddleware(PaginationDto, "query")]
+    );
 
-    router.post("/groups/:groupId/messages", message.create.bind(message), [
-        CheckAuthorizedMiddleware("accessToken", "jwt"),
-        ValidateDtoMiddleware(CreateMessageDto, "body")
-    ])
-    
-    router.patch("/messages/:id", message.update.bind(message), [
+    router.post(
+        "/groups/:groupId/messages",
+        controller.create.bind(controller),
+        [
+            CheckAuthorizedMiddleware("accessToken", "jwt"),
+            ValidateDtoMiddleware(CreateMessageDto, "body"),
+        ]
+    );
+
+    router.patch("/messages/:id", controller.update.bind(controller), [
         CheckAuthorizedMiddleware("accessToken", "jwt"),
         ValidateDtoMiddleware(CreateMessageDto, "body"),
-        CheckOwnershipMiddleware("id", "senderId", messageService.findOne.bind(messageService))
-    ])
+        CheckOwnershipMiddleware(
+            "id",
+            "senderId",
+            service.findOne.bind(service)
+        ),
+    ]);
 
-    router.delete("/messages/:id", message.delete.bind(message), [
+    router.delete("/messages/:id", controller.delete.bind(controller), [
         CheckAuthorizedMiddleware("accessToken", "jwt"),
-        CheckOwnershipMiddleware("id", "senderId", messageService.findOne.bind(messageService))
-    ])
+        CheckOwnershipMiddleware(
+            "id",
+            "senderId",
+            service.findOne.bind(service)
+        ),
+    ]);
 
-    return router
-}
+    return router;
+};

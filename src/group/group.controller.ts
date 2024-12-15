@@ -20,10 +20,10 @@ export class GroupController {
         private readonly userService: UserService
     ) {}
 
-    public static async GetInstance() {
+    public static async resolve() {
         if (!GroupController.instance) {
-            const groupService = await GroupService.GetInstance();
-            const userService = await UserService.GetInstance();
+            const groupService = await GroupService.resolve();
+            const userService = await UserService.resolve();
 
             GroupController.instance = new GroupController(
                 groupService,

@@ -6,16 +6,16 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { UserController } from "./user.controller";
 
 export const createUserRouter = async () => {
-    const user = await UserController.GetInstance();
+    const controller = await UserController.resolve();
     const router = new Router();
 
-    router.get("/users", user.findAll.bind(user), [
+    router.get("/users", controller.findAll.bind(controller), [
         ValidateDtoMiddleware(PaginationDto, "query"),
     ]);
 
-    router.get("/users/:id", user.findOne.bind(user));
+    router.get("/users/:id", controller.findOne.bind(controller));
 
-    router.patch("/users", user.update.bind(user), [
+    router.patch("/users", controller.update.bind(controller), [
         CheckAuthorizedMiddleware("accessToken", "jwt"),
         ValidateDtoMiddleware(UpdateUserDto, "body"),
     ]);

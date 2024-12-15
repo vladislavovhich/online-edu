@@ -3,7 +3,7 @@ import { Request } from "../../../lib/request/request";
 import { UserService } from "../../user/user.service";
 
 export const extractUser = async (request: Request) => {
-    const userService = await UserService.GetInstance();
+    const userService = await UserService.resolve();
 
     if (!request.payload) {
         throw new BadRequestError(

@@ -21,10 +21,10 @@ export class CourseController {
         private readonly userService: UserService
     ) {}
 
-    public static async GetInstance() {
+    public static async resolve() {
         if (!CourseController.instance) {
-            const courseService = await CourseService.GetInstance();
-            const userService = await UserService.GetInstance();
+            const courseService = await CourseService.resolve();
+            const userService = await UserService.resolve();
 
             CourseController.instance = new CourseController(
                 courseService,

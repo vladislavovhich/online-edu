@@ -3,5 +3,17 @@ export enum HttpMethod {
     POST = "POST",
     PUT = "PUT",
     PATCH = "PATCH",
-    DELETE = "DELETE"
+    DELETE = "DELETE",
 }
+
+export type FileType = {
+    content: Buffer;
+    name: string;
+    size: number;
+};
+
+export type RequestRead = {
+    headers: Record<string, string>;
+    body: Buffer | null;
+    raw: string;
+};

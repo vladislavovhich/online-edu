@@ -14,9 +14,9 @@ export class UserService {
 
     private constructor(private prisma: PrismaClient) {}
 
-    public static async GetInstance() {
+    public static async resolve() {
         if (!UserService.instance) {
-            const prisma = await PrismaService.GetInstance();
+            const prisma = await PrismaService.resolve();
 
             UserService.instance = new UserService(prisma);
         }

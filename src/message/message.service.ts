@@ -15,10 +15,10 @@ export class MessageService {
         private readonly groupService: GroupService
     ) {}
 
-    public static async GetInstance() {
+    public static async resolve() {
         if (!MessageService.instance) {
-            const prisma = await PrismaService.GetInstance();
-            const groupService = await GroupService.GetInstance();
+            const prisma = await PrismaService.resolve();
+            const groupService = await GroupService.resolve();
 
             MessageService.instance = new MessageService(prisma, groupService);
         }

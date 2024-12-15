@@ -15,9 +15,9 @@ export class UserController {
 
     private constructor(private readonly userService: UserService) {}
 
-    public static async GetInstance() {
+    public static async resolve() {
         if (!UserController.instance) {
-            const userService = await UserService.GetInstance();
+            const userService = await UserService.resolve();
 
             UserController.instance = new UserController(userService);
         }

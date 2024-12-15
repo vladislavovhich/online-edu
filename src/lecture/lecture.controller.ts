@@ -13,9 +13,9 @@ export class LectureController {
 
     private constructor(private readonly lectureService: LectureService) {}
 
-    public static async GetInstance() {
+    public static async resolve() {
         if (!LectureController.instance) {
-            const lectureService = await LectureService.GetInstance();
+            const lectureService = await LectureService.resolve();
 
             LectureController.instance = new LectureController(lectureService);
         }

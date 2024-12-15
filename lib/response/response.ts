@@ -39,13 +39,34 @@ export class Response {
             "Access-Control-Allow-Headers: X-PINGOTHER, Content-Type",
             "Access-Control-Max-Age: 86400",
             "Access-Control-Allow-Credentials: true",
-            "Vary: Accept-Encoding, Origin",
-            "Keep-Alive: timeout=2, max=100",
-            "connection: keep-alive",
-            "Content-Type: text/plain",
+            "\r\n",
         ].join("\r\n");
 
-        return headers;
+        const buffer = Buffer.from(headers);
+
+        return buffer;
+    }
+
+    public file(content: Buffer, fileName: string) {
+        const headers = [
+            `HTTP/1.0 200 OK`,
+            `Content-Type: application/octet-stream`,
+            `Content-Length: ${Buffer.byteLength(content)}`,
+            `Content-Disposition: attachment; filename="${fileName}"`,
+            "Connection: close",
+            "Access-Control-Allow-Origin: https://192.168.0.127:3000",
+            "Access-Control-Allow-Credentials: true",
+            ...(this.cookies.length > 0
+                ? this.cookies.map(
+                      (cookie) => `Set-Cookie: ${cookie.toHeader()}`
+                  )
+                : []),
+            `\r\n`,
+        ].join("\r\n");
+
+        const buffer = Buffer.concat([Buffer.from(headers), content]);
+
+        return buffer;
     }
 
     public make(
@@ -70,6 +91,8 @@ export class Response {
             body,
         ].join("\r\n");
 
-        return headers;
+        const buffer = Buffer.from(headers);
+
+        return buffer;
     }
 }
